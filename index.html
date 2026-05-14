@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROMEO Prototype</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="game-root">
+    <section id="canvas-wrapper">
+      <canvas id="render-canvas"></canvas>
+    </section>
+
+    <section id="ui-overlay">
+      <aside class="panel status-bar">
+        <div class="status-row">
+          <span>Room:</span>
+          <strong id="room-name">Placeholder Chamber</strong>
+        </div>
+        <div class="status-row">
+          <span>Noise:</span>
+          <strong id="noise-meter">0</strong>
+        </div>
+        <div class="status-row">
+          <span>Threat:</span>
+          <strong id="threat-state">dormant</strong>
+        </div>
+      </aside>
+
+      <aside id="inventory-panel" class="panel">
+        <h2>Inventory</h2>
+        <div id="inventory-grid" class="inventory-grid"></div>
+      </aside>
+
+      <aside id="narrator-panel" class="panel">
+        <p id="narrator-text" class="narrator-text">
+          Welcome to the PSX zombie text adventure skeleton. Click the crate or the door to test the interaction flow.
+        </p>
+        <div id="choice-buttons" class="choice-buttons"></div>
+      </aside>
+    </section>
+  </main>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="game.js?v=zip-rooms-1"></script>
+</body>
+</html>

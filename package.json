@@ -1,0 +1,23 @@
+{
+  "name": "psx-zombie-text-adventure",
+  "version": "0.1.0",
+  "description": "Skeleton PSX-era zombie apocalypse text adventure engine using Three.js and Howler.js.",
+  "private": true,
+  "scripts": {
+    "start": "npx http-server . -c-1",
+    "dev": "npx live-server . --port=8080"
+  },
+  "keywords": [
+    "threejs",
+    "howler",
+    "zombie",
+    "psx",
+    "text-adventure",
+    "game-engine"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

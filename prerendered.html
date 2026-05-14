@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROMEO Prerendered Room Engine</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #030303;
+      color: #d7ccbb;
+      font-family: "Lucida Console", Monaco, monospace;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 4px),
+        radial-gradient(circle at 50% 62%, transparent 0 48%, rgba(0,0,0,0.45) 90%);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+    }
+
+    #stage {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #020202;
+    }
+
+    #room-canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: crosshair;
+      box-shadow: 0 0 0 1px #15120f, 0 0 55px rgba(0,0,0,0.9);
+    }
+
+    #ui {
+      position: fixed;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+      display: grid;
+      grid-template-columns: 280px 220px 1fr;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .panel {
+      border: 1px solid rgba(142, 126, 99, 0.38);
+      background: rgba(7, 7, 7, 0.86);
+      padding: 10px 12px;
+      min-height: 48px;
+      box-shadow: inset 0 0 18px rgba(0,0,0,0.8);
+      font-size: 12px;
+      line-height: 1.45;
+      letter-spacing: 0.04em;
+    }
+
+    .label {
+      color: #7f7465;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+
+    .value {
+      color: #d0c2aa;
+    }
+  </style>
+</head>
+<body>
+  <main id="stage">
+    <canvas id="room-canvas" width="1920" height="1080"></canvas>
+  </main>
+
+  <aside id="ui">
+    <div class="panel">
+      <div class="label">Composition</div>
+      <div id="ui-room" class="value">Loading</div>
+    </div>
+    <div class="panel">
+      <div class="label">Focus</div>
+      <div id="ui-focus" class="value">No focus</div>
+    </div>
+    <div class="panel">
+      <div class="label">Romeo</div>
+      <div id="ui-message" class="value">...</div>
+    </div>
+  </aside>
+
+  <script type="module" src="prerendered-engine.js?v=precomp-1"></script>
+</body>
+</html>

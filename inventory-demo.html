@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROMEO Inventory Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      background: #050505;
+      color: #d4c8b3;
+      font-family: "Lucida Console", Monaco, monospace;
+      letter-spacing: 0.04em;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px),
+        radial-gradient(circle at 18% 28%, rgba(86, 63, 45, 0.08), transparent 28%),
+        radial-gradient(circle at 80% 70%, rgba(90, 16, 16, 0.08), transparent 32%);
+      mix-blend-mode: screen;
+      opacity: 0.55;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px);
+      background-size: 3px 3px;
+      opacity: 0.18;
+    }
+
+    .game-frame {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: linear-gradient(#050505, #080707 55%, #120b0b);
+    }
+
+    .inventory-overlay {
+      width: min(1120px, calc(100vw - 28px));
+      height: min(680px, calc(100vh - 28px));
+      display: grid;
+      grid-template-columns: 365px 1fr;
+      grid-template-rows: 1fr 108px;
+      gap: 14px;
+      padding: 16px;
+      border: 2px solid #2b2927;
+      background:
+        linear-gradient(rgba(10, 10, 10, 0.94), rgba(3, 3, 3, 0.96)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 6px);
+      box-shadow: 0 0 0 1px #090909, inset 0 0 42px rgba(0,0,0,0.9);
+    }
+
+    .panel {
+      border: 1px solid #3a342d;
+      background: rgba(12, 12, 11, 0.9);
+      box-shadow: inset 0 0 24px rgba(0,0,0,0.82);
+    }
+
+    .grid-panel {
+      padding: 14px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      color: #968a79;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 78px);
+      grid-template-rows: repeat(2, 92px);
+      gap: 10px;
+    }
+
+    .slot {
+      position: relative;
+      border: 1px solid #39352f;
+      background:
+        linear-gradient(145deg, rgba(0,0,0,0.92), rgba(27,25,22,0.78)),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 5px);
+      box-shadow: inset 0 0 16px rgba(0,0,0,0.88);
+      cursor: pointer;
+      padding: 6px 5px 4px;
+      display: grid;
+      grid-template-rows: 48px 1fr;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .slot.permanent {
+      border-color: #5b5140;
+      background:
+        linear-gradient(145deg, rgba(13, 12, 10, 0.96), rgba(28, 24, 17, 0.86)),
+        repeating-linear-gradient(45deg, rgba(161,128,65,0.035) 0 1px, transparent 1px 4px);
+    }
+
+    .slot.selected {
+      border-color: #a77a2d;
+      box-shadow: inset 0 0 16px rgba(0,0,0,0.88), 0 0 0 1px rgba(161, 115, 37, 0.55);
+      animation: flicker 0.16s steps(2, end) 1;
+    }
+
+    .slot.combine-target {
+      border-color: #8a7132;
+    }
+
+    .lock {
+      position: absolute;
+      top: 4px;
+      left: 5px;
+      font-size: 11px;
+      color: #8a7451;
+    }
+
+    .slot-weight {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      color: #7e7464;
+      font-size: 10px;
+    }
+
+    .item-icon {
+      width: 42px;
+      height: 42px;
+      image-rendering: pixelated;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      filter: saturate(0.8) contrast(1.1);
+    }
+
+    .slot-name {
+      align-self: end;
+      min-height: 25px;
+      max-width: 68px;
+      color: #b7aa94;
+      font-size: 9px;
+      line-height: 1.2;
+      text-align: center;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-panel {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 126px 1fr;
+      grid-template-rows: auto 1fr auto;
+      gap: 14px 18px;
+    }
+
+    .item-name {
+      grid-column: 1 / -1;
+      font-size: 22px;
+      color: #d7c7a8;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .large-icon {
+      width: 112px;
+      height: 112px;
+      border: 1px solid #332f2a;
+      background: #080807;
+      display: grid;
+      place-items: center;
+      font-size: 64px;
+      image-rendering: pixelated;
+      box-shadow: inset 0 0 22px #000;
+    }
+
+    .detail-copy {
+      color: #b9ad99;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .meta {
+      margin-top: 12px;
+      color: #7e7464;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .warning {
+      margin-top: 10px;
+      color: #9a3932;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .puzzle {
+      margin-top: 6px;
+      color: #706757;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 40px;
+    }
+
+    button {
+      border: 1px solid #4a4236;
+      background: #1b1814;
+      color: #cbbda4;
+      padding: 9px 12px;
+      font: inherit;
+      font-size: 11px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.7);
+    }
+
+    button:hover:not(:disabled) {
+      color: #e0c47d;
+      border-color: #7e5f2b;
+    }
+
+    button:disabled {
+      color: #5e5750;
+      border-color: #2d2a26;
+      cursor: not-allowed;
+    }
+
+    .status-strip {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 360px 130px 170px 1fr;
+      gap: 18px;
+      align-items: center;
+      padding: 14px;
+    }
+
+    .gauge-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .gauge-label {
+      color: #8d8271;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .gauge {
+      position: relative;
+      height: 26px;
+      border: 1px solid #4a4236;
+      background:
+        linear-gradient(90deg, #1c1b18, #16130f),
+        repeating-linear-gradient(90deg, transparent 0 20px, rgba(255,255,255,0.05) 20px 21px);
+      box-shadow: inset 0 0 14px #000;
+    }
+
+    .gauge-fill {
+      position: absolute;
+      inset: 4px auto 4px 4px;
+      width: 0%;
+      background: linear-gradient(90deg, #585545, #9a7a32 72%, #6d2722);
+      transition: none;
+    }
+
+    .gauge.flash .gauge-fill {
+      filter: brightness(1.8);
+      animation: flicker 0.13s steps(2, end) 1;
+    }
+
+    .gauge-needle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #bfa05f;
+      left: 4px;
+    }
+
+    .status-box {
+      color: #9e9280;
+      font-size: 12px;
+      line-height: 1.55;
+      text-transform: uppercase;
+    }
+
+    .movement.normal {
+      color: #9d968c;
+    }
+
+    .movement.encumbered {
+      color: #bd8b39;
+    }
+
+    .movement.overloaded {
+      color: #9a3932;
+    }
+
+    .comment {
+      color: #c0b29a;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .mode {
+      color: #b9904d;
+      font-size: 11px;
+      text-transform: uppercase;
+      min-height: 16px;
+      margin-top: 12px;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.65; }
+      50% { opacity: 1; }
+      100% { opacity: 0.78; }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow: auto;
+      }
+
+      .inventory-overlay {
+        height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+      }
+
+      .status-strip,
+      .detail-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-frame">
+    <section class="inventory-overlay" aria-label="ROMEO inventory demo">
+      <aside class="panel grid-panel">
+        <div class="panel-title">Romeo / Inventory</div>
+        <div id="slot-grid" class="slot-grid"></div>
+        <div id="mode-text" class="mode"></div>
+      </aside>
+
+      <section class="panel detail-panel">
+        <h1 id="item-name" class="item-name">Select Item</h1>
+        <div id="large-icon" class="large-icon">?</div>
+        <div>
+          <p id="item-copy" class="detail-copy">Eight slots. Two are not negotiable. Romeo has opinions about that.</p>
+          <div id="item-meta" class="meta"></div>
+          <div id="item-warning" class="warning"></div>
+          <div id="item-puzzle" class="puzzle"></div>
+        </div>
+        <div id="actions" class="actions"></div>
+      </section>
+
+      <footer class="panel status-strip">
+        <div class="gauge-wrap">
+          <div class="gauge-label">Load</div>
+          <div id="weight-gauge" class="gauge">
+            <div id="gauge-fill" class="gauge-fill"></div>
+            <div id="gauge-needle" class="gauge-needle"></div>
+          </div>
+        </div>
+        <div id="weight-readout" class="status-box"></div>
+        <div id="movement-state" class="status-box movement normal"></div>
+        <div id="romeo-comment" class="comment"></div>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const ITEM_DATA = [
+      {
+        id: "tinas_key",
+        name: "Tina's Key",
+        description: "A small brass apartment key.",
+        examineText: "Tina said not to lose it. Which means it weighs nothing and still manages to be heavy.",
+        icon: "key",
+        type: "key",
+        weight: 0,
+        slotCost: 1,
+        behaviors: {},
+        puzzleFlags: {},
+        combinations: [],
+        useOnWorld: [{ hotspotId: "apartment_door", text: "It still knows where home is." }],
+        permanent: true,
+        permanentRefusalText: "Romeo picks it up. Puts it back. No."
+      },
+      {
+        id: "city_pop_cassette",
+        name: "City-Pop Cassette",
+        description: "A mixtape with handwriting on the label.",
+        examineText: "Forty minutes of neon optimism recorded by someone who had not seen tonight.",
+        icon: "cassette",
+        type: "keepsake",
+        weight: 0,
+        slotCost: 1,
+        behaviors: {},
+        puzzleFlags: {},
+        combinations: [],
+        useOnWorld: [],
+        permanent: true,
+        permanentRefusalText: "Not a chance."
+      },
+      {
+        id: "duct_tape",
+        name: "Duct Tape",
+        description: "Silver tape. Almost out.",
+        examineText: "The universal language of bad decisions and temporary repairs.",
+        icon: "tape",
+        type: "tool",
+        weight: 1,
+        slotCost: 1,
+        behaviors: { makeNoise: false },
+        puzzleFlags: {},
+        combinations: [
+          {
+            withItem: "kitchen_knife",
+            produces: "taped_knife",
+            consumesSelf: true,
+            consumesTarget: true,
+            resultText: "A knife with a taped grip. OSHA can call when the dead stop biting."
+          }
+        ],
+        useOnWorld: [{ hotspotId: "broken_hose", text: "It holds. For now. That is the tape's whole religion." }],
+        permanent: false
+      },
+      {
+        id: "kitchen_knife",
+        name: "Kitchen Knife",
+        description: "Short blade, cheap handle.",
+        examineText: "Good for onions. Less good for the thing in the hallway. Still better than teeth.",
+        icon: "knife",
+        type: "weapon",
+        weight: 1,
+        slotCost: 1,
+        behaviors: { makeNoise: false, dropOnDamage: false },
+        puzzleFlags: {},
+        combinations: [
+          {
+            withItem: "duct_tape",
+            produces: "taped_knife",
+            consumesSelf: true,
+            consumesTarget: true,
+            resultText: "A knife with a taped grip. Ugly, practical, mine."
+          }
+        ],
+        useOnWorld: [{ hotspotId: "old_rope", text: "The rope gives up faster than Romeo expected. Lucky rope." }],
+        permanent: false
+      },
+      {
+        id: "gas_tank",
+        name: "Gas Tank",
+        description: "Half full. Smells like escape.",
+        examineText: "A red metal apology from every car that ever failed to start.",
+        icon: "gas",
+        type: "puzzle",
+        weight: 4,
+        slotCost: 3,
+        behaviors: {
+          isBulky: true,
+          twoHanded: true,
+          restrictActions: ["shoot", "melee", "climb", "run"],
+          slowsMovement: true,
+          makeNoise: true,
+          noiseLevel: 4,
+          dropText: "That's better. I can actually move now."
+        },
+        puzzleFlags: {
+          isPuzzleItem: true,
+          puzzleId: "car_loading",
+          puzzleRole: "CAR LOADING",
+          countToward: "fuel",
+          targetValue: 1,
+          mustReturnFor: "escape_car"
+        },
+        combinations: [],
+        useOnWorld: [{ hotspotId: "escape_car", text: "The car drinks it like a dying man at a fountain." }],
+        permanent: false
+      },
+      {
+        id: "handgun",
+        name: "Handgun",
+        description: "Old police issue. Cold grip.",
+        examineText: "Six arguments, if I can keep my hands steady enough to make them.",
+        icon: "gun",
+        type: "weapon",
+        weight: 2,
+        slotCost: 1,
+        behaviors: { makeNoise: true, noiseLevel: 9 },
+        puzzleFlags: {},
+        combinations: [],
+        useOnWorld: [{ hotspotId: "zombie", text: "Romeo raises it. The room seems to get smaller." }],
+        permanent: false
+      },
+      {
+        id: "rounds_9mm",
+        name: "9mm Rounds",
+        description: "Six loose rounds.",
+        examineText: "Six small promises. Some promises are louder than others.",
+        icon: "ammo",
+        type: "ammo",
+        weight: 1,
+        slotCost: 1,
+        quantity: 6,
+        behaviors: {},
+        puzzleFlags: {},
+        combinations: [],
+        useOnWorld: [],
+        permanent: false
+      },
+      {
+        id: "taped_knife",
+        name: "Taped Knife",
+        description: "Kitchen knife with a crude taped grip.",
+        examineText: "It will not win awards. It might win three seconds.",
+        icon: "knife_plus",
+        type: "weapon",
+        weight: 2,
+        slotCost: 1,
+        behaviors: {},
+        puzzleFlags: {},
+        combinations: [],
+        useOnWorld: [{ hotspotId: "zombie", text: "Close work. The kind Romeo was hoping to avoid." }],
+        permanent: false
+      }
+    ];
+
+    const DEMO_INVENTORY = [
+      "tinas_key",
+      "city_pop_cassette",
+      "duct_tape",
+      "kitchen_knife",
+      "gas_tank",
+      "handgun",
+      "rounds_9mm"
+    ];
+
+    const ICONS = {
+      key: "⚿",
+      cassette: "▣",
+      tape: "◎",
+      knife: "†",
+      gas: "▥",
+      gun: "⌐",
+      ammo: "▪",
+      knife_plus: "‡"
+    };
+
+    class Item {
+      constructor(data) {
+        this.id = data.id;
+        this.name = data.name;
+        this.description = data.description;
+        this.examineText = data.examineText;
+        this.icon = data.icon;
+        this.type = data.type;
+        this.weight = data.weight || 0;
+        this.slotCost = data.slotCost || 1;
+        this.quantity = data.quantity || null;
+        this.behaviors = data.behaviors || {};
+        this.puzzleFlags = data.puzzleFlags || {};
+        this.combinations = data.combinations || [];
+        this.useOnWorld = data.useOnWorld || [];
+        this.permanent = Boolean(data.permanent);
+        this.permanentRefusalText = data.permanentRefusalText || "Romeo refuses. Quietly, but firmly.";
+      }
+
+      get label() {
+        return this.quantity ? `${this.name} x${this.quantity}` : this.name;
+      }
+
+      get isBulky() {
+        return Boolean(this.behaviors.isBulky);
+      }
+
+      get twoHanded() {
+        return Boolean(this.behaviors.twoHanded);
+      }
+    }
+
+    class PlayerInventory {
+      constructor({ slots = 8, activeSlots = 6, weightLimit = 20, permanentSlots = [0, 1] } = {}) {
+        this.slots = slots;
+        this.activeSlots = activeSlots;
+        this.weightLimit = weightLimit;
+        this.permanentSlots = permanentSlots;
+        this.contents = Array(slots).fill(null);
+      }
+
+      addItem(item, preferredSlot = null) {
+        const target = preferredSlot ?? this.findFirstFreeSlot(item);
+        if (target === -1 || target === null) return false;
+        if (!this.canFitAt(item, target)) return false;
+        this.contents[target] = item;
+        return true;
+      }
+
+      removeItem(slotIndex) {
+        const item = this.contents[slotIndex];
+        if (!item || item.permanent) return null;
+        this.contents[slotIndex] = null;
+        return item;
+      }
+
+      combineItems(firstItem, secondItem) {
+        const combo = this.findCombination(firstItem, secondItem);
+        if (!combo) return null;
+        return combo;
+      }
+
+      findCombination(firstItem, secondItem) {
+        return firstItem.combinations.find((combo) => combo.withItem === secondItem.id)
+          || secondItem.combinations.find((combo) => combo.withItem === firstItem.id);
+      }
+
+      getWeight(extraItem = null) {
+        const base = this.contents.reduce((sum, item) => sum + (item ? item.weight : 0), 0);
+        return base + (extraItem ? extraItem.weight : 0);
+      }
+
+      getSlotCount() {
+        return this.contents.reduce((sum, item) => sum + (item ? item.slotCost : 0), 0);
+      }
+
+      getMovementState(weight = this.getWeight()) {
+        if (weight >= 20) return "overloaded";
+        if (weight >= 15) return "encumbered";
+        return "normal";
+      }
+
+      canCarry(item) {
+        return this.findFirstFreeSlot(item) !== -1;
+      }
+
+      findFirstFreeSlot(item) {
+        for (let index = 0; index < this.slots; index += 1) {
+          if (this.permanentSlots.includes(index) && !item.permanent) continue;
+          if (this.canFitAt(item, index)) return index;
+        }
+        return -1;
+      }
+
+      canFitAt(item, slotIndex) {
+        if (slotIndex < 0 || slotIndex >= this.slots) return false;
+        if (this.contents[slotIndex]) return false;
+        if (item.permanent) return this.permanentSlots.includes(slotIndex);
+        if (this.permanentSlots.includes(slotIndex)) return false;
+        if (item.slotCost <= 1) return true;
+
+        for (let offset = 0; offset < item.slotCost; offset += 1) {
+          const index = slotIndex + offset;
+          if (index >= this.slots || this.permanentSlots.includes(index) || this.contents[index]) return false;
+        }
+        return true;
+      }
+    }
+
+    const itemMap = new Map(ITEM_DATA.map((data) => [data.id, new Item(data)]));
+    const inventory = new PlayerInventory();
+    DEMO_INVENTORY.forEach((id, index) => {
+      inventory.addItem(cloneItem(id), index);
+    });
+
+    let selectedSlot = 0;
+    let combineSourceSlot = null;
+    let heldWorldItem = null;
+    let lastMessage = "Manageable.";
+
+    const grid = document.getElementById("slot-grid");
+    const itemName = document.getElementById("item-name");
+    const itemCopy = document.getElementById("item-copy");
+    const itemMeta = document.getElementById("item-meta");
+    const itemWarning = document.getElementById("item-warning");
+    const itemPuzzle = document.getElementById("item-puzzle");
+    const largeIcon = document.getElementById("large-icon");
+    const actions = document.getElementById("actions");
+    const gauge = document.getElementById("weight-gauge");
+    const gaugeFill = document.getElementById("gauge-fill");
+    const gaugeNeedle = document.getElementById("gauge-needle");
+    const weightReadout = document.getElementById("weight-readout");
+    const movementState = document.getElementById("movement-state");
+    const romeoComment = document.getElementById("romeo-comment");
+    const modeText = document.getElementById("mode-text");
+
+    function cloneItem(id) {
+      const base = itemMap.get(id);
+      return new Item(JSON.parse(JSON.stringify(base)));
+    }
+
+    function render() {
+      renderGrid();
+      renderDetail();
+      renderStatus();
+    }
+
+    function renderGrid() {
+      grid.innerHTML = "";
+      inventory.contents.forEach((item, index) => {
+        const slot = document.createElement("button");
+        slot.className = "slot";
+        if (index === selectedSlot) slot.classList.add("selected");
+        if (combineSourceSlot !== null && index !== combineSourceSlot) slot.classList.add("combine-target");
+        if (inventory.permanentSlots.includes(index)) slot.classList.add("permanent");
+        slot.onclick = () => selectSlot(index);
+
+        if (inventory.permanentSlots.includes(index)) {
+          const lock = document.createElement("div");
+          lock.className = "lock";
+          lock.textContent = "⌧";
+          slot.appendChild(lock);
+        }
+
+        const weight = document.createElement("div");
+        weight.className = "slot-weight";
+        weight.textContent = item ? `${item.weight}/${item.slotCost}` : "";
+        slot.appendChild(weight);
+
+        const icon = document.createElement("div");
+        icon.className = "item-icon";
+        icon.textContent = item ? ICONS[item.icon] || "?" : "";
+        slot.appendChild(icon);
+
+        const name = document.createElement("div");
+        name.className = "slot-name";
+        name.textContent = item ? item.label : "";
+        slot.appendChild(name);
+        grid.appendChild(slot);
+      });
+      modeText.textContent = combineSourceSlot !== null ? "COMBINE: choose second item" : heldWorldItem ? `USING: ${heldWorldItem.name}` : "";
+    }
+
+    function renderDetail() {
+      const item = inventory.contents[selectedSlot];
+      if (!item) {
+        itemName.textContent = "Empty";
+        largeIcon.textContent = "";
+        itemCopy.textContent = "A square of possibility. Romeo tries not to get sentimental.";
+        itemMeta.textContent = "";
+        itemWarning.textContent = "";
+        itemPuzzle.textContent = "";
+        actions.innerHTML = "";
+        return;
+      }
+
+      itemName.textContent = item.label;
+      largeIcon.textContent = ICONS[item.icon] || "?";
+      itemCopy.textContent = item.examineText;
+      itemMeta.innerHTML = `WEIGHT: ${item.weight}<br>SLOT COST: ${item.slotCost}<br>TYPE: ${item.type}`;
+      itemWarning.textContent = item.twoHanded ? "BOTH HANDS — COMBAT DISABLED" : "";
+      itemPuzzle.textContent = item.puzzleFlags.isPuzzleItem ? `NEEDED: ${item.puzzleFlags.puzzleRole}` : "";
+      renderActions(item);
+    }
+
+    function renderActions(item) {
+      actions.innerHTML = "";
+      [
+        ["EXAMINE", () => say(item.examineText)],
+        ["USE", () => useSelectedItem(item)],
+        ["COMBINE", () => startCombine()],
+        ["DROP", () => dropSelectedItem(item), item.permanent]
+      ].forEach(([label, handler, disabled]) => {
+        const button = document.createElement("button");
+        button.textContent = label;
+        button.disabled = false;
+        button.onclick = () => {
+          if (disabled) {
+            say(item.permanentRefusalText);
+            return;
+          }
+          handler();
+        };
+        if (disabled) button.classList.add("disabled");
+        actions.appendChild(button);
+      });
+    }
+
+    function renderStatus() {
+      const weight = inventory.getWeight();
+      const percent = Math.min(weight / inventory.weightLimit, 1) * 100;
+      const state = inventory.getMovementState(weight);
+      gaugeFill.style.width = `${percent}%`;
+      gaugeNeedle.style.left = `calc(${percent}% - 1px)`;
+      weightReadout.innerHTML = `WEIGHT<br>${weight} / ${inventory.weightLimit}<br>SLOTS ${inventory.getSlotCount()} / ${inventory.slots}`;
+      movementState.className = `status-box movement ${state}`;
+      movementState.innerHTML = `MOVEMENT<br>${state.toUpperCase()}`;
+      romeoComment.textContent = lastMessage || getLoadComment(state);
+    }
+
+    function selectSlot(index) {
+      if (combineSourceSlot !== null) {
+        finishCombine(index);
+        return;
+      }
+      selectedSlot = index;
+      render();
+    }
+
+    function startCombine() {
+      const item = inventory.contents[selectedSlot];
+      if (!item) return;
+      combineSourceSlot = selectedSlot;
+      say(`Romeo turns ${item.name.toLowerCase()} over in his hand. "With what, genius?"`);
+      render();
+    }
+
+    function finishCombine(targetSlot) {
+      const sourceSlot = combineSourceSlot;
+      combineSourceSlot = null;
+      const firstItem = inventory.contents[sourceSlot];
+      const secondItem = inventory.contents[targetSlot];
+      if (!firstItem || !secondItem || sourceSlot === targetSlot) {
+        say("That would be stupid even by my standards.");
+        render();
+        return;
+      }
+
+      const combo = inventory.combineItems(firstItem, secondItem);
+      if (!combo) {
+        say("That would be stupid even by my standards.");
+        render();
+        return;
+      }
+
+      gauge.classList.add("flash");
+      window.setTimeout(() => gauge.classList.remove("flash"), 130);
+      if (combo.consumesSelf) inventory.contents[sourceSlot] = null;
+      if (combo.consumesTarget) inventory.contents[targetSlot] = null;
+      inventory.addItem(cloneItem(combo.produces));
+      selectedSlot = inventory.contents.findIndex((item) => item?.id === combo.produces);
+      say(combo.resultText);
+      render();
+    }
+
+    function dropSelectedItem(item) {
+      const before = inventory.getMovementState();
+      if (item.permanent) {
+        say(item.permanentRefusalText);
+        return;
+      }
+      if (item.puzzleFlags.isPuzzleItem) {
+        say("I might need this. But I need to move more.");
+      }
+      inventory.removeItem(selectedSlot);
+      const after = inventory.getMovementState();
+      if (item.isBulky && before !== after) {
+        say(item.behaviors.dropText || "That's better. I can actually move now.");
+      } else if (!item.puzzleFlags.isPuzzleItem) {
+        say(item.behaviors.dropText || `${item.name} hits the floor with more confidence than Romeo feels.`);
+      }
+      render();
+    }
+
+    function useSelectedItem(item) {
+      if (item.useOnWorld.length) {
+        heldWorldItem = item;
+        say(`${item.name} selected. Pick something in the room that deserves this bad idea.`);
+        render();
+        return;
+      }
+      if (item.type === "ammo") {
+        say("No magazine. No time. Great combination.");
+      } else {
+        say("Romeo finds no immediate use for it. The night remains unimpressed.");
+      }
+      render();
+    }
+
+    function say(text) {
+      lastMessage = text;
+      itemCopy.textContent = text;
+      renderStatus();
+    }
+
+    function getLoadComment(state) {
+      if (state === "overloaded") return "Something has to go.";
+      if (state === "encumbered") return "I've carried worse. Once.";
+      return "Manageable.";
+    }
+
+    function demoPickupWarning(itemId) {
+      const item = cloneItem(itemId);
+      const projectedWeight = inventory.getWeight(item);
+      const projectedState = inventory.getMovementState(projectedWeight);
+      gauge.classList.add("flash");
+      window.setTimeout(() => gauge.classList.remove("flash"), 130);
+      if (projectedState !== inventory.getMovementState()) {
+        say(projectedState === "overloaded" ? "Romeo can take it. Romeo can also make terrible choices." : "That'll slow me down.");
+      }
+      return item;
+    }
+
+    window.ROMEO_DEMO = {
+      inventory,
+      demoPickupWarning
+    };
+
+    render();
+  </script>
+</body>
+</html>
