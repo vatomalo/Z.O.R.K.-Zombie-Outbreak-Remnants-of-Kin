@@ -2927,29 +2927,37 @@ const AudioManager = {
   audio: null,
   currentSrc: null,
   pendingPlay: false,
+  musicSrc: './rooms/Cassette_in_Room9.mp3',
+  volume: 0.42,
+  lastError: null,
 
   init() {
     this.audio = new Audio();
     this.audio.preload = 'auto';
-    this.audio.volume = 0.42;
+    this.audio.loop = true;
+    this.audio.volume = this.volume;
+    this.audio.onerror = () => {
+      this.lastError = this.audio?.error?.message || `Media error ${this.audio?.error?.code || 'unknown'}`;
+      console.warn('Music failed to load.', this.lastError);
+    };
+    this.audio.oncanplay = () => {
+      if (this.pendingPlay || this.audio.paused) this.play();
+    };
     window.DEBUG_AUDIO = () => this.getDebugState();
-    window.addEventListener('pointerdown', () => this.retryPendingMusic(), { passive: true });
-    window.addEventListener('keydown', () => this.retryPendingMusic(), { passive: true });
-    this.playForRoom(RoomManager.currentRoom);
+    window.addEventListener('pointerdown', () => this.unlockMusic(), { passive: true });
+    window.addEventListener('keydown', () => this.unlockMusic(), { passive: true });
+    this.playMusic();
   },
 
   playForRoom(room) {
-    if (!this.audio) return;
-    const music = room?.roomData?.audio?.music;
-    if (!music) {
-      this.stop();
-      return;
-    }
+    this.playMusic();
+  },
 
-    const src = RoomManager.getRoomAssetPath(room.roomData, music);
-    const volume = room.roomData.audio.volume;
-    this.audio.loop = room.roomData.audio.loop !== false;
-    this.audio.volume = Number.isFinite(volume) ? volume : 0.42;
+  playMusic() {
+    if (!this.audio || !this.musicSrc) return;
+    const src = this.musicSrc;
+    this.audio.loop = true;
+    this.audio.volume = this.volume;
     if (this.currentSrc !== src) {
       this.currentSrc = src;
       this.audio.src = src;
@@ -2960,6 +2968,7 @@ const AudioManager = {
 
   play() {
     if (!this.audio || !this.currentSrc) return;
+    this.lastError = null;
     const playPromise = this.audio.play();
     if (playPromise?.catch) {
       playPromise
@@ -2972,9 +2981,12 @@ const AudioManager = {
     }
   },
 
+  unlockMusic() {
+    this.playMusic();
+  },
+
   retryPendingMusic() {
-    if (!this.pendingPlay || !this.audio?.paused) return;
-    this.play();
+    this.unlockMusic();
   },
 
   stop() {
@@ -2994,6 +3006,9 @@ const AudioManager = {
       volume: this.audio?.volume ?? 0,
       loop: this.audio?.loop ?? false,
       currentTime: this.audio?.currentTime ?? 0,
+      readyState: this.audio?.readyState ?? 0,
+      networkState: this.audio?.networkState ?? 0,
+      error: this.lastError,
     };
   },
 };
