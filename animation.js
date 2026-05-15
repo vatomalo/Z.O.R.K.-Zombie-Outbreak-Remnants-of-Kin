@@ -2,15 +2,23 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.m
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/FBXLoader.js';
 
 export class AnimationLibrary {
-  constructor() {
+  constructor(resolveUrl = null) {
+    this.resolveUrl = resolveUrl;
     this.loader = this.createLoader();
     this.clips = new Map();
   }
 
   createLoader() {
     const manager = new THREE.LoadingManager();
-    manager.setURLModifier((url) => url.replaceAll('\\', '/'));
+    manager.setURLModifier((url) => {
+      const normalized = url.replaceAll('\\', '/');
+      return this.resolveUrl ? this.resolveUrl(normalized) : normalized;
+    });
     return new FBXLoader(manager);
+  }
+
+  setURLResolver(resolveUrl) {
+    this.resolveUrl = resolveUrl;
   }
 
   load(name, path) {
