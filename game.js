@@ -51,6 +51,7 @@ const RoomManager = {
   hallwayRoomData: null,
   roomDataById: {},
   roomPackages: {},
+  assetPackages: {},
   hybridWalkMask: null,
   hybridInterestMap: null,
   roomMaps: {},
@@ -74,11 +75,13 @@ const RoomManager = {
   characterAnimationPaths: {
     idle: './Animation/idle.fbx',
     walk: './Animation/walk.fbx',
+    backpedal: './Animation/Walk Backward.fbx',
     aim: './Animation/Shoot.fbx',
   },
   characterAnimationSpeeds: {
     idle: 1,
     walk: 1.75,
+    backpedal: 1.15,
     pickup: 1,
   },
   characterAimPoseTime: 0.82,
@@ -146,6 +149,9 @@ const RoomManager = {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     window.addEventListener('resize', () => this.onResize());
 
+    await this.loadAssetPackages();
+    this.animationLibrary.setURLResolver((url) => this.getGlobalAssetPath(url));
+    this.npcAnimationLibrary.setURLResolver((url) => this.getGlobalAssetPath(url));
     await this.loadAllRoomData();
     this.hybridRoomData = this.roomDataById.apt_708_entry;
     this.hallwayRoomData = this.roomDataById.hallway_7f;
@@ -401,6 +407,57 @@ const RoomManager = {
     return urls;
   },
 
+  async loadAssetPackages() {
+    await Promise.all([
+      this.loadAssetPackage('models', './models.zip'),
+      this.loadAssetPackage('animation', './animation.zip'),
+    ]);
+  },
+
+  async loadAssetPackage(name, zipPath) {
+    try {
+      const response = await fetch(this.withCacheBust(zipPath), { cache: 'no-store' });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      const archive = unzipSync(new Uint8Array(await response.arrayBuffer()));
+      this.assetPackages[name] = {
+        zip: zipPath,
+        assetUrls: this.createAssetPackageUrls(archive),
+      };
+    } catch (error) {
+      console.warn(`Failed to load ${zipPath}; falling back to loose asset files.`, error);
+      this.assetPackages[name] = {
+        zip: zipPath,
+        assetUrls: {},
+      };
+    }
+  },
+
+  createAssetPackageUrls(archive) {
+    const urls = {};
+    Object.entries(archive)
+      .filter(([name, data]) => data && !name.endsWith('/'))
+      .forEach(([name, data]) => {
+        const blob = new Blob([data], { type: this.getMimeType(name) });
+        const url = URL.createObjectURL(blob);
+        this.getAssetPackageKeys(name).forEach((key) => {
+          urls[key] = url;
+        });
+      });
+    return urls;
+  },
+
+  getAssetPackageKeys(path) {
+    const key = this.normalizeAssetKey(path);
+    const keys = new Set([key]);
+    const topLevelIndex = key.indexOf('/');
+    if (topLevelIndex >= 0) keys.add(key.slice(topLevelIndex + 1));
+    if (!key.includes('/')) {
+      keys.add(`Models/${key}`);
+      keys.add(`Animation/${key}`);
+    }
+    return [...keys].filter(Boolean);
+  },
+
   resolveZipRelativeAssetUrl(roomId, ownerPath, href, urls) {
     const ownerKey = this.normalizeAssetKey(ownerPath);
     const ownerDir = ownerKey.includes('/') ? ownerKey.slice(0, ownerKey.lastIndexOf('/') + 1) : '';
@@ -644,6 +701,25 @@ const RoomManager = {
     if (!path || typeof path !== 'string') return null;
     if (/^(blob:|https?:)?\/\//i.test(path) || path.startsWith('blob:') || path.startsWith('./') || path.startsWith('../')) return path;
     return `./${path}`;
+  },
+
+  getGlobalAssetPath(path) {
+    if (!path || typeof path !== 'string') return null;
+    if (/^(blob:|https?:)?\/\//i.test(path) || path.startsWith('blob:')) return path;
+    const normalized = this.normalizeAssetKey(path);
+    const bare = normalized.replace(/^(?:\.\.\/)+/, '');
+    const candidates = [
+      normalized,
+      bare,
+      normalized.replace(/^\.\//, ''),
+      bare.replace(/^\.\//, ''),
+    ];
+    for (const packageInfo of Object.values(this.assetPackages)) {
+      for (const candidate of candidates) {
+        if (packageInfo.assetUrls[candidate]) return packageInfo.assetUrls[candidate];
+      }
+    }
+    return this.getAssetPath(path);
   },
 
   getRoomActorConfigs() {
@@ -1091,12 +1167,12 @@ const RoomManager = {
       const textureName = normalizedUrl.split('/').pop();
       const folderMatch = normalizedUrl.match(/Models\/([^/]+)\.fbm\//i);
       if (folderMatch && textureName) {
-        return `./Models/${folderMatch[1]}.fbm/${textureName}`;
+        return this.getGlobalAssetPath(`Models/${folderMatch[1]}.fbm/${textureName}`);
       }
       if (textureName && /\.(jpe?g|png|tga|webp)$/i.test(textureName)) {
-        return `./Models/${textureFolder}.fbm/${textureName}`;
+        return this.getGlobalAssetPath(`Models/${textureFolder}.fbm/${textureName}`);
       }
-      return normalizedUrl;
+      return this.getGlobalAssetPath(normalizedUrl);
     });
     return new FBXLoader(manager);
   },
@@ -1136,6 +1212,7 @@ const RoomManager = {
         this.characterAnimator.update(0);
         if (character) character.visible = true;
         this.loadOptionalCharacterAnimation('walk');
+        this.loadOptionalCharacterAnimation('backpedal');
         this.loadOptionalCharacterAnimation('aim');
       })
       .catch((error) => {
@@ -1247,7 +1324,13 @@ const RoomManager = {
 
   playCharacterAnimation(name, fadeSeconds = 0.18) {
     if (!this.characterAnimator || this.characterAnimationState === name) return;
-    if (!this.hasCharacterAction(name)) return;
+    if (!this.hasCharacterAction(name)) {
+      this.loadCharacterAnimation(name).then((clip) => {
+        if (!clip || !this.characterAnimator) return;
+        this.registerCharacterAnimation(name, clip);
+      });
+      return;
+    }
     this.characterAnimationState = name;
     this.characterAnimator.play(name, fadeSeconds, this.characterAnimationSpeeds[name] || 1);
   },
@@ -1258,6 +1341,10 @@ const RoomManager = {
 
   playWalkAnimation(fadeSeconds = 0.18) {
     this.playCharacterAnimation('walk', fadeSeconds);
+  },
+
+  playBackpedalAnimation(fadeSeconds = 0.18) {
+    this.playCharacterAnimation('backpedal', fadeSeconds);
   },
 
   playAimAnimation(fadeSeconds = 0.12) {
@@ -1304,6 +1391,8 @@ const RoomManager = {
       this.playAimAnimation();
     } else if (movementState === 'walk') {
       this.playWalkAnimation();
+    } else if (movementState === 'backpedal') {
+      this.playBackpedalAnimation();
     } else {
       this.playIdleAnimation();
     }
