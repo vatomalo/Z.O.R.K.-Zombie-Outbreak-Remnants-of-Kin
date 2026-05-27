@@ -1,0 +1,198 @@
+{
+  "id": "apt_708_entry",
+  "displayName": "Apartment 708 / Entry",
+  "layers": {
+    "background": "rooms/apt_708_entry/bg.svg",
+    "foreground": "rooms/apt_708_entry/fg.svg",
+    "walkMask": "rooms/apt_708_entry/walkmask.svg",
+    "walkMaskMode": "painted-walkable",
+    "interestMap": "rooms/apt_708_entry/interestmap.svg"
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1920,
+    "height": 1080
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [960, 535, -3.2],
+      "bottom": [960, 1080, 3.4]
+    },
+    "layers": {
+      "background": "rooms/apt_708_entry/bg.svg",
+      "foreground": "rooms/apt_708_entry/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [18.4, 10.35],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.58,
+      "backgroundExposure": 2.45,
+      "foregroundOpacity": 0.18
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "fov": 55,
+      "position": [0, 1.75, 5.2],
+      "target": [0, 1.15, -1.25]
+    },
+    "screenScaleReference": {
+      "doorRect": [1440, 80, 300, 720],
+      "actorReferencePosition": [2.55, 0, -1.75],
+      "targetActorFractionOfDoor": 0.64
+    },
+    "lighting": {
+      "profile": "safe_apartment",
+      "fogColor": "#0b0d10",
+      "fogNear": 7,
+      "fogFar": 20,
+      "clearColor": "#060607",
+      "ambientColor": "#70675c",
+      "ambientIntensity": 1.18,
+      "practicalColor": "#ffd2a0",
+      "practicalIntensity": 2.65,
+      "practicalPosition": [-2.5, 1.35, 0.75],
+      "windowColor": "#b8d8ff",
+      "windowIntensity": 1.12,
+      "windowPosition": [-0.35, 2.8, -3.2],
+      "rimColor": "#fff2d2",
+      "rimIntensity": 0.72,
+      "rimPosition": [2.9, 2.0, -2.4]
+    }
+  },
+  "playerStart": {
+    "markerColor": "#000000",
+    "markerSearchRadius": 220,
+    "x": 1200,
+    "y": 760,
+    "facing": "down"
+  },
+  "spawns": {
+    "from_hallway": {
+      "x": 1470,
+      "y": 790,
+      "facing": "left"
+    }
+  },
+  "actors": [],
+  "exits": [
+    {
+      "id": "hallway_door",
+      "label": "Door",
+      "rect": [1410, 410, 230, 380],
+      "targetRoom": "hallway_7f",
+      "targetSpawn": "from_apartment",
+      "text": "Romeo opens the apartment door. The hall waits colder than it should."
+    }
+  ],
+  "onEnter": [
+    {
+      "once": "apt_708_entry.first_enter",
+      "text": "Apartment 708 still knows Romeo's shape. For now, the room is bright enough to lie."
+    }
+  ],
+  "interests": {
+    "#ff0000": {
+      "id": "front_door",
+      "label": "Door",
+      "cursor": "exit",
+      "targetRoom": "hallway_7f",
+      "targetSpawn": "from_apartment",
+      "voice": "doorheavy",
+      "text": "The door is heavy, but not locked. The hallway on the other side has been listening."
+    },
+    "#00ff00": {
+      "id": "desk",
+      "label": "Desk",
+      "voice": "desk",
+      "text": "Old bills, half-written lyrics, and a note in Romeo's own handwriting: If I forget, check the books."
+    },
+    "#ff8800": {
+      "id": "flag",
+      "label": "Flag",
+      "voice": "flag",
+      "text": "A Chilean flag, pinned up like proof somebody here still believed in places. Romeo looks at it longer than he means to."
+    },
+    "#0000ff": {
+      "id": "bed",
+      "label": "Bed",
+      "voice": "bed",
+      "text": "The sheets smell like cold sweat and cheap detergent. Somebody slept badly here."
+    },
+    "#ffff00": {
+      "id": "coffee_table",
+      "label": "Table",
+      "voice": "table",
+      "text": "A battlefield of mugs, paper, and things nobody wanted to throw away."
+    },
+    "#ff00ff": {
+      "id": "window",
+      "label": "Window",
+      "voice": "window",
+      "text": "Snow crawls down the glass. Outside has the decency to stay outside."
+    },
+    "#00ffff": {
+      "id": "tv",
+      "label": "Television",
+      "voice": "television",
+      "text": "Dead screen. Heavy glass. The kind of silence that used to mean late-night movies."
+    },
+    "#380f04": {
+      "id": "lamp",
+      "label": "Lamp",
+      "voice": "lamp",
+      "text": "The lamp keeps its small promise. Warmth, a little circle of it, and nothing more."
+    },
+    "#808080": {
+      "id": "punchingbag",
+      "label": "Punchingbag",
+      "voice": "punchy",
+      "text": "Judging by the dents, somebody was training for the end of the world."
+    },
+    "#ffffff": {
+      "id": "books",
+      "label": "Books",
+      "voice": "books",
+      "once": "apt_708_entry.books.small_key",
+      "giveItem": "small_key",
+      "setFlag": "found_small_key",
+      "text": "Between two swollen paperbacks, Romeo finds a small key taped to the inside cover.",
+      "repeatText": "Apparently the chosen one only needed friendship, courage, and a legendary blade."
+    },
+    "#955746": {
+      "id": "jacket",
+      "label": "Jacket",
+      "voice": "jacket",
+      "text": "It is Romeo's jacket, but after all of this, it feels like it belongs to someone he used to be."
+    },
+    "#042d0e": {
+      "id": "picture",
+      "label": "Picture",
+      "voice": "picture",
+      "text": "Romeo remembers hiding something before sleep became impossible."
+    },
+    "#26863d": {
+      "id": "vhs",
+      "label": "VHS",
+      "voice": "vhs",
+      "text": "The tape label reads: DO NOT LOSE THE SMALL ONE. Romeo hates when past Romeo is vague."
+    },
+    "#161d47": {
+      "id": "pictures",
+      "label": "Pictures",
+      "voice": "pictures",
+      "text": "Pictures from a cleaner life. Romeo studies them like evidence from a case he already lost."
+    },
+    "#2d3c9e": {
+      "id": "heater",
+      "label": "Heater",
+      "voice": "heater",
+      "text": "At least something in this place still remembers how to be warm."
+    }
+  }
+}

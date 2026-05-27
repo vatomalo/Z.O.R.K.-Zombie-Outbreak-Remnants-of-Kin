@@ -1,0 +1,335 @@
+{
+  "id": "street",
+  "displayName": "Street",
+  "layers": {
+    "background": "rooms/street/bg.png",
+    "foreground": "rooms/street/fg.svg",
+    "interestMap": "rooms/street/interestmap.svg",
+    "walkMask": "rooms/street/walkmask.svg",
+    "walkMaskMode": "painted-walkable"
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1672,
+    "height": 941
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [
+        836,
+        505,
+        -3.15
+      ],
+      "bottom": [
+        836,
+        930,
+        3.45
+      ]
+    },
+    "layers": {
+      "background": "rooms/street/bg.png",
+      "foreground": "rooms/street/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [
+        18.4,
+        10.35
+      ],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.78,
+      "backgroundExposure": 1.05,
+      "backgroundTint": "#9bb0c2",
+      "backgroundTintStrength": 0.12,
+      "foregroundOpacity": 0.18
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "position": [
+        0,
+        1.75,
+        5.2
+      ],
+      "target": [
+        0,
+        1.15,
+        -1.25
+      ]
+    },
+    "walkBounds": {
+      "minX": -4.15,
+      "maxX": 4.15,
+      "minZ": -3.05,
+      "maxZ": 3.35
+    },
+    "screenScaleReference": {
+      "doorRect": [
+        95,
+        160,
+        270,
+        520
+      ],
+      "actorReferencePosition": [
+        -3.05,
+        0,
+        0.8
+      ],
+      "targetActorFractionOfDoor": 0.48
+    },
+    "lighting": {
+      "profile": "street_cold",
+      "fogColor": "#030609",
+      "fogNear": 2,
+      "fogFar": 11,
+      "clearColor": "#010204",
+      "ambientColor": "#222a31",
+      "ambientIntensity": 0.42,
+      "practicalColor": "#ffd7a0",
+      "practicalIntensity": 1.2,
+      "practicalPosition": [
+        -3.05,
+        2.1,
+        -0.25
+      ],
+      "windowColor": "#607d9d",
+      "windowIntensity": 0.8,
+      "windowPosition": [
+        1.5,
+        2.8,
+        -2.6
+      ],
+      "rimColor": "#7894b0",
+      "rimIntensity": 0.24,
+      "rimPosition": [
+        2.8,
+        2,
+        -2.2
+      ]
+    },
+    "actorDepthScale": {
+      "topY": 505,
+      "bottomY": 930,
+      "topScale": 0.34,
+      "bottomScale": 1.08,
+      "curve": 1.35
+    }
+  },
+  "playerStart": {
+    "x": 836,
+    "y": 820,
+    "facing": "up"
+  },
+  "spawns": {
+    "from_garage": {
+      "x": 1365,
+      "y": 710,
+      "facing": "left"
+    },
+    "from_apartment": {
+      "x": 260,
+      "y": 690,
+      "facing": "right"
+    },
+    "from_downtown": {
+      "x": 900,
+      "y": 805,
+      "facing": "left"
+    }
+  },
+  "actors": [],
+  "exits": [
+    {
+      "id": "street_to_downtown",
+      "label": "Downtown",
+      "rect": [
+        640,
+        500,
+        560,
+        360
+      ],
+      "text": "Romeo follows the street toward downtown.",
+      "driveSequence": {
+        "firstRoom": "street",
+        "firstSpawn": "from_garage",
+        "secondRoom": "street_to_downtown",
+        "secondSpawn": "from_street",
+        "vanishingPoint": "58% 44%",
+        "firstHoldMs": 1800,
+        "collapseMs": 1700,
+        "secondHoldMs": 6800,
+        "carStartX": -2.35,
+        "carEndX": 0.25,
+        "backgroundShift": -0.5,
+        "afterText": "The next block moves past in wet slices of light.",
+        "parallaxMs": 6800,
+        "sideLoops": 4,
+        "scrollWorldUnits": 73.6,
+        "carHoldX": -1.15,
+        "carZ": 2.55,
+        "firstPersonZoomScale": 2.05,
+        "carY": -2.35
+      }
+    },
+    {
+      "id": "apartment_708_door",
+      "label": "708 Door",
+      "rect": [
+        95,
+        160,
+        270,
+        520
+      ],
+      "targetRoom": "apt_708_entry",
+      "targetSpawn": "from_hallway",
+      "text": "Romeo goes back through the door marked 708."
+    },
+    {
+      "id": "garage_shutter",
+      "label": "Garage Door",
+      "rect": [
+        1410,
+        330,
+        245,
+        360
+      ],
+      "targetRoom": "garage_workshop",
+      "targetSpawn": "from_basement",
+      "text": "Romeo slips back through the garage door."
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "street_forward",
+      "label": "Downtown",
+      "rect": [
+        640,
+        500,
+        560,
+        360
+      ],
+      "text": "Romeo follows the street toward downtown.",
+      "driveSequence": {
+        "firstRoom": "street",
+        "firstSpawn": "from_garage",
+        "secondRoom": "street_to_downtown",
+        "secondSpawn": "from_street",
+        "vanishingPoint": "58% 44%",
+        "firstHoldMs": 1800,
+        "collapseMs": 1700,
+        "secondHoldMs": 6800,
+        "carStartX": -2.35,
+        "carEndX": 0.25,
+        "backgroundShift": -0.5,
+        "afterText": "The next block moves past in wet slices of light.",
+        "parallaxMs": 6800,
+        "sideLoops": 4,
+        "scrollWorldUnits": 73.6,
+        "carHoldX": -1.15,
+        "carZ": 2.55,
+        "firstPersonZoomScale": 2.05,
+        "carY": -2.35
+      }
+    },
+    {
+      "id": "no_parking_sign",
+      "label": "No Parking Sign",
+      "rect": [
+        1435,
+        220,
+        180,
+        110
+      ],
+      "text": "NO PARKING. 24 HOUR ACCESS. Tow away zone. The sign still believes in rules."
+    }
+  ],
+  "onEnter": [
+    {
+      "once": "street.first_enter",
+      "text": "The street opens in front of him, cold and wide and wrong."
+    }
+  ],
+  "interests": {
+    "#ff0000": {
+      "id": "apartment_708_door",
+      "label": "708 Door",
+      "cursor": "exit",
+      "targetRoom": "apt_708_entry",
+      "targetSpawn": "from_hallway",
+      "text": "Romeo goes back through the door marked 708."
+    },
+    "#00ff00": {
+      "id": "intercom",
+      "label": "Intercom",
+      "text": "The intercom plate is scratched blind. No names left. No voices either."
+    },
+    "#0000ff": {
+      "id": "street_depth",
+      "label": "Downtown",
+      "cursor": "exit",
+      "text": "The alley narrows toward downtown. Wet asphalt reflects lamps that look too tired to help.",
+      "driveSequence": {
+        "firstRoom": "street",
+        "firstSpawn": "from_garage",
+        "secondRoom": "street_to_downtown",
+        "secondSpawn": "from_street",
+        "vanishingPoint": "58% 44%",
+        "firstHoldMs": 1800,
+        "collapseMs": 1700,
+        "secondHoldMs": 6800,
+        "carStartX": -2.35,
+        "carEndX": 0.25,
+        "backgroundShift": -0.5,
+        "afterText": "The next block moves past in wet slices of light.",
+        "parallaxMs": 6800,
+        "sideLoops": 4,
+        "scrollWorldUnits": 73.6,
+        "carHoldX": -1.15,
+        "carZ": 2.55,
+        "firstPersonZoomScale": 2.05,
+        "carY": -2.35
+      }
+    },
+    "#ffff00": {
+      "id": "trash_cans",
+      "label": "Trash Cans",
+      "text": "Metal cans crowd the curb. Their lids shine with rain and old grease."
+    },
+    "#ff00ff": {
+      "id": "garage_shutter",
+      "label": "Garage Door",
+      "cursor": "exit",
+      "targetRoom": "garage_workshop",
+      "targetSpawn": "from_basement",
+      "text": "Romeo slips back through the garage door."
+    },
+    "#00ffff": {
+      "id": "no_parking_sign",
+      "label": "No Parking Sign",
+      "text": "NO PARKING. 24 HOUR ACCESS. Tow away zone. The sign still believes in rules."
+    },
+    "#955746": {
+      "id": "street_lamp",
+      "label": "Street Lamp",
+      "text": "The lamp hums over the alley, warm only to itself."
+    },
+    "#808080": {
+      "id": "trash_bags",
+      "label": "Trash Bags",
+      "text": "Black bags slump at the edge of the light. Romeo decides not to count them."
+    },
+    "#ff8800": {
+      "id": "right_side_trash",
+      "label": "Trash",
+      "text": "A cone, cans, and torn paper collect beneath the shutter like the street swept them there."
+    }
+  },
+  "npcAnimations": {
+    "idle": "Animation/idle.fbx",
+    "walk": "Animation/walk.fbx"
+  }
+}

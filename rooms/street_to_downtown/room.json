@@ -1,0 +1,254 @@
+{
+  "id": "street_to_downtown",
+  "displayName": "Street to Downtown",
+  "layers": {
+    "background": "rooms/street_to_downtown/bg.svg",
+    "foreground": "rooms/street_to_downtown/fg.svg",
+    "interestMap": "rooms/street_to_downtown/interestmap.svg",
+    "walkMask": "rooms/street_to_downtown/walkmask.svg",
+    "walkMaskMode": "painted-walkable"
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1672,
+    "height": 941
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [
+        836,
+        640,
+        -2.85
+      ],
+      "bottom": [
+        836,
+        930,
+        3.35
+      ]
+    },
+    "layers": {
+      "background": "rooms/street_to_downtown/bg.svg",
+      "foreground": "rooms/street_to_downtown/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [
+        18.4,
+        10.35
+      ],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.78,
+      "backgroundExposure": 1.03,
+      "backgroundTint": "#b4a58e",
+      "backgroundTintStrength": 0.08,
+      "foregroundOpacity": 0.16
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "position": [
+        0,
+        1.75,
+        5.2
+      ],
+      "target": [
+        0,
+        1.15,
+        -1.25
+      ]
+    },
+    "walkBounds": {
+      "minX": -4.15,
+      "maxX": 4.15,
+      "minZ": -2.85,
+      "maxZ": 3.35
+    },
+    "screenScaleReference": {
+      "doorRect": [
+        625,
+        420,
+        145,
+        280
+      ],
+      "actorReferencePosition": [
+        -0.7,
+        0,
+        0.9
+      ],
+      "targetActorFractionOfDoor": 0.46
+    },
+    "lighting": {
+      "profile": "downtown_street",
+      "fogColor": "#050504",
+      "fogNear": 2,
+      "fogFar": 12,
+      "clearColor": "#010101",
+      "ambientColor": "#302a22",
+      "ambientIntensity": 0.42,
+      "practicalColor": "#ffd69a",
+      "practicalIntensity": 1.35,
+      "practicalPosition": [
+        -3.1,
+        2,
+        -0.4
+      ],
+      "windowColor": "#74889a",
+      "windowIntensity": 0.5,
+      "windowPosition": [
+        -0.45,
+        2.8,
+        -2.7
+      ],
+      "rimColor": "#8ea0b0",
+      "rimIntensity": 0.22,
+      "rimPosition": [
+        2.8,
+        2,
+        -2.1
+      ]
+    },
+    "actorDepthScale": {
+      "topY": 610,
+      "bottomY": 930,
+      "topScale": 0.38,
+      "bottomScale": 1.08,
+      "curve": 1.3
+    }
+  },
+  "playerStart": {
+    "x": 836,
+    "y": 810,
+    "facing": "up"
+  },
+  "spawns": {
+    "from_street": {
+      "x": 1160,
+      "y": 830,
+      "facing": "left"
+    },
+    "from_garage": {
+      "x": 1160,
+      "y": 830,
+      "facing": "left"
+    }
+  },
+  "actors": [],
+  "props": [
+    {
+      "id": "escape_car",
+      "path": "Models/car.fbx",
+      "textureFolder": "car",
+      "position": [
+        -3.75,
+        -2.35,
+        0.55
+      ],
+      "rotationY": 3.1416,
+      "visualRotation": [
+        0,
+        0,
+        0
+      ],
+      "heightScale": 0.36,
+      "collisionRadius": 0.42,
+      "collisionOffset": [
+        0.1,
+        0,
+        0.05
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "id": "back_to_street",
+      "label": "Back",
+      "rect": [
+        0,
+        705,
+        190,
+        236
+      ],
+      "targetRoom": "street",
+      "targetSpawn": "from_downtown",
+      "text": "Romeo heads back toward the garage street."
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "downtown_street",
+      "label": "Downtown",
+      "rect": [
+        780,
+        420,
+        355,
+        275
+      ],
+      "targetRoom": "downtown_swarm",
+      "targetSpawn": "from_parked_car",
+      "text": "The street bends toward downtown. More windows. Less mercy."
+    }
+  ],
+  "onEnter": [
+    {
+      "once": "street_to_downtown.first_enter",
+      "text": "The next block is quieter than the last. That does not make it kinder."
+    }
+  ],
+  "interests": {
+    "#ff00ff": {
+      "id": "shutter",
+      "label": "Shutter",
+      "text": "A metal shutter has been pulled down and left to rust in the rain."
+    },
+    "#ff0000": {
+      "id": "left_door",
+      "label": "Door",
+      "text": "A narrow door under the streetlamp. It looks locked by habit, not hope."
+    },
+    "#0000ff": {
+      "id": "side_alley",
+      "label": "Alley",
+      "text": "A thin alley slips between buildings. Cold air comes through it like a warning."
+    },
+    "#00ff00": {
+      "id": "middle_door",
+      "label": "Door",
+      "text": "The middle door has a warm bulb over it and no welcome underneath."
+    },
+    "#ffff00": {
+      "id": "downtown_street",
+      "label": "Downtown",
+      "targetRoom": "downtown_swarm",
+      "targetSpawn": "from_parked_car",
+      "text": "Past the building fronts, downtown waits in stacked dark windows."
+    },
+    "#955746": {
+      "id": "storefront_gate",
+      "label": "Gate",
+      "text": "A collapsed storefront gate hides glass and old shadows."
+    },
+    "#00ffff": {
+      "id": "right_door",
+      "label": "Door",
+      "text": "A side door under a tired lamp. The handle is cold and still."
+    },
+    "#808080": {
+      "id": "distant_windows",
+      "label": "Windows",
+      "text": "Far windows burn weakly in the alley. Romeo cannot tell if that is better or worse."
+    },
+    "#ff8800": {
+      "id": "street",
+      "label": "Street",
+      "text": "Rain sits in the road in black, shallow mirrors."
+    }
+  },
+  "npcAnimations": {
+    "idle": "Animation/idle.fbx",
+    "walk": "Animation/walk.fbx"
+  }
+}

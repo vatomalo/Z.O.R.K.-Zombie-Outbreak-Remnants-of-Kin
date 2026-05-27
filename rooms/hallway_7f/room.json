@@ -1,0 +1,336 @@
+{
+  "id": "hallway_7f",
+  "displayName": "Seventh Floor Hallway",
+  "layers": {
+    "background": "rooms/hallway_7f/bg.svg",
+    "foreground": "rooms/hallway_7f/fg.svg",
+    "interestMap": "rooms/hallway_7f/interestmap.svg",
+    "walkMask": "rooms/hallway_7f/walkmask.svg",
+    "walkMaskMode": "painted-walkable"
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1920,
+    "height": 1080
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [
+        960,
+        600,
+        -3
+      ],
+      "bottom": [
+        960,
+        1000,
+        3.2
+      ]
+    },
+    "layers": {
+      "background": "rooms/hallway_7f/bg.svg",
+      "foreground": "rooms/hallway_7f/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [
+        18.4,
+        10.35
+      ],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.78,
+      "backgroundExposure": 1.18,
+      "backgroundTint": "#8aa7ae",
+      "backgroundTintStrength": 0.32,
+      "foregroundOpacity": 0.42
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "fov": 55,
+      "position": [
+        0,
+        1.75,
+        5.2
+      ],
+      "target": [
+        0,
+        1.15,
+        -1.25
+      ]
+    },
+    "walkBounds": {
+      "minX": -3.15,
+      "maxX": 3.15,
+      "minZ": -2.35,
+      "maxZ": 1.45
+    },
+    "screenScaleReference": {
+      "doorRect": [
+        390,
+        350,
+        260,
+        460
+      ],
+      "actorReferencePosition": [
+        0,
+        0,
+        -1.5
+      ],
+      "targetActorFractionOfDoor": 0.48
+    },
+    "lighting": {
+      "profile": "cold_hallway",
+      "fogColor": "#061014",
+      "fogNear": 2,
+      "fogFar": 10,
+      "clearColor": "#030708",
+      "ambientColor": "#2f3d42",
+      "ambientIntensity": 0.55,
+      "practicalColor": "#b7d0c4",
+      "practicalIntensity": 0.85,
+      "practicalPosition": [
+        -1.8,
+        1.8,
+        -0.6
+      ],
+      "windowColor": "#6f8aa5",
+      "windowIntensity": 0.45,
+      "windowPosition": [
+        0,
+        2.8,
+        -3.2
+      ],
+      "rimColor": "#8fa8c4",
+      "rimIntensity": 0.35,
+      "rimPosition": [
+        2.6,
+        2,
+        -2.4
+      ]
+    }
+  },
+  "playerStart": {
+    "x": 620,
+    "y": 780,
+    "facing": "right"
+  },
+  "spawns": {
+    "from_apartment": {
+      "x": 610,
+      "y": 780,
+      "facing": "right"
+    },
+    "from_kitchen": {
+      "x": 1510,
+      "y": 770,
+      "facing": "left"
+    }
+  },
+  "exits": [
+    {
+      "id": "apartment_door",
+      "label": "Apartment 708",
+      "rect": [
+        34,
+        800,
+        132,
+        128
+      ],
+      "targetRoom": "apt_708_entry",
+      "targetSpawn": "from_hallway",
+      "text": "Romeo slips back into the last warm room."
+    },
+    {
+      "id": "kitchen_door",
+      "label": "Old Kitchen",
+      "rect": [
+        1360,
+        283,
+        250,
+        475
+      ],
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "The kitchen door opens with a soft wooden complaint."
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "apartment_door",
+      "label": "Apartment 708",
+      "rect": [
+        34,
+        800,
+        132,
+        128
+      ],
+      "targetRoom": "apt_708_entry",
+      "targetSpawn": "from_hallway",
+      "text": "Apartment 708 waits behind that door. The hall feels worse every second."
+    },
+    {
+      "id": "kitchen_door",
+      "label": "Old Kitchen Door",
+      "rect": [
+        1360,
+        283,
+        250,
+        475
+      ],
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "A sour draft comes from the old kitchen."
+    }
+  ],
+  "npcAnimations": {
+    "idle": "Animation/idle.fbx",
+    "walk": "Animation/walk.fbx"
+  },
+  "actors": [
+    {
+      "id": "tenant",
+      "label": "Tenant",
+      "type": "zombie",
+      "active": false,
+      "path": "Models/Zombie02.fbx",
+      "textureFolder": "Zombie02",
+      "position": [
+        1.8,
+        0,
+        -0.75
+      ],
+      "rotationY": -1.45,
+      "heightScale": 0.98,
+      "animations": {
+        "idle": {
+          "clip": "idle",
+          "speed": 0.65
+        },
+        "walk": {
+          "clip": "walk",
+          "speed": 0.55
+        }
+      },
+      "movement": {
+        "walkSpeed": 0.24,
+        "waitSeconds": 1.5,
+        "path": [
+          [
+            1.8,
+            0,
+            -0.75
+          ],
+          [
+            0.85,
+            0,
+            -0.55
+          ]
+        ]
+      },
+      "collisionRadius": 0.38,
+      "attackRadius": 1,
+      "damage": 8,
+      "damageCooldownMs": 1600,
+      "health": 4,
+      "traceRadius": 0.52,
+      "maxHealth": 4
+    }
+  ],
+  "onEnter": [
+    {
+      "once": "hallway_7f.first_enter",
+      "setFlag": "visited_hallway",
+      "text": "The hallway smells wet. Old carpet, burst pipes, something metallic underneath."
+    },
+    {
+      "requiresFlag": "basement_hatch_unlocked",
+      "requiresMissingFlag": "hallway_tenant_spawned",
+      "setFlag": "hallway_tenant_spawned",
+      "spawnZombie": "tenant",
+      "setThreat": "alerted",
+      "text": "The tenant door is open now. Romeo is certain it was closed before."
+    }
+  ],
+  "interests": {
+    "#ff0000": {
+      "id": "old_kitchen_door",
+      "label": "Old Kitchen Door",
+      "cursor": "exit",
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "The kitchen smells sour even from here."
+    },
+    "#00ff00": {
+      "id": "hall_table",
+      "label": "Hall Table",
+      "text": "A little hall table holding dust, dead flowers, and somebody else's memories."
+    },
+    "#ff8800": {
+      "id": "warm_mark",
+      "label": "Mark",
+      "text": "A warm-colored mark catches Romeo's eye, then gives him nothing useful."
+    },
+    "#0000ff": {
+      "id": "cold_window",
+      "label": "Window",
+      "text": "Cold light leaks in from the far window. Outside has gone quiet in a way Romeo does not trust."
+    },
+    "#ffff00": {
+      "id": "coat_rack",
+      "label": "Coat Rack",
+      "text": "A coat hangs there like somebody left in a hurry and forgot their shape behind."
+    },
+    "#ff00ff": {
+      "id": "picture_cluster",
+      "label": "Pictures",
+      "text": "Old portraits and landscapes crowd the wall. Every face looks like it heard something downstairs."
+    },
+    "#00ffff": {
+      "id": "stairwell",
+      "label": "Stairwell",
+      "text": "The stairwell breathes cold air up from below."
+    },
+    "#380f04": {
+      "id": "wall_stain",
+      "label": "Stain",
+      "once": "hallway_7f.inspect_stain",
+      "setFlag": "saw_hallway_blood",
+      "text": "A dark stain has dried into the paint. Romeo decides not to guess.",
+      "repeatText": "The stain has not improved with a second look."
+    },
+    "#808080": {
+      "id": "owner_portrait",
+      "label": "Portrait",
+      "once": "hallway_7f.owner_portrait_noise",
+      "setFlag": "heard_tenant_inside",
+      "raiseNoise": 4,
+      "text": "A picture of the old apartment owner. Behind the wall, something bumps once, then stops.",
+      "repeatText": "The portrait keeps its old smile. The wall behind it stays quiet."
+    },
+    "#ffffff": {
+      "id": "light_wall",
+      "label": "Wall",
+      "text": "The paint has gone pale and tired where the hall light used to reach it."
+    },
+    "#1f1f47": {
+      "id": "apartment_door",
+      "label": "Apartment 708",
+      "cursor": "exit",
+      "targetRoom": "apt_708_entry",
+      "targetSpawn": "from_hallway",
+      "text": "Apartment 708 waits behind that door. The hall feels worse every second."
+    },
+    "#955746": {
+      "id": "old_kitchen_door",
+      "label": "Old Kitchen Door",
+      "cursor": "exit",
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "The kitchen smells sour even from here."
+    }
+  }
+}

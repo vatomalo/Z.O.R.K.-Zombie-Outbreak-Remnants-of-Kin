@@ -1,0 +1,190 @@
+{
+  "id": "basement_storage",
+  "displayName": "Basement Storage",
+  "layers": {
+    "background": "rooms/basement_storage/bg.png",
+    "foreground": "rooms/basement_storage/fg.svg",
+    "interestMap": "rooms/basement_storage/interestmap.svg",
+    "walkMask": "rooms/basement_storage/walkmask.svg",
+    "walkMaskMode": "painted-walkable"
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1672,
+    "height": 941
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [836, 610, -3.0],
+      "bottom": [836, 900, 3.2]
+    },
+    "layers": {
+      "background": "rooms/basement_storage/bg.png",
+      "foreground": "rooms/basement_storage/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [18.4, 10.35],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.78,
+      "backgroundExposure": 1.02,
+      "backgroundTint": "#8290a4",
+      "backgroundTintStrength": 0.34,
+      "foregroundOpacity": 0.34
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "position": [0, 1.75, 5.2],
+      "target": [0, 1.15, -1.25]
+    },
+    "walkBounds": {
+      "minX": -3.6,
+      "maxX": 3.6,
+      "minZ": -2.35,
+      "maxZ": 1.6
+    },
+    "screenScaleReference": {
+      "doorRect": [25, 300, 155, 515],
+      "actorReferencePosition": [0, 0, -1.5],
+      "targetActorFractionOfDoor": 0.48
+    },
+    "lighting": {
+      "profile": "basement_utility",
+      "fogColor": "#05070a",
+      "fogNear": 1.2,
+      "fogFar": 7,
+      "clearColor": "#020304",
+      "ambientColor": "#222832",
+      "ambientIntensity": 0.38,
+      "practicalColor": "#aeb8c8",
+      "practicalIntensity": 0.95,
+      "practicalPosition": [-2.0, 2.0, -0.8],
+      "windowColor": "#526070",
+      "windowIntensity": 0.18,
+      "windowPosition": [1.8, 2.3, -2.8],
+      "rimColor": "#6e7890",
+      "rimIntensity": 0.22,
+      "rimPosition": [2.2, 2.0, -2.0]
+    }
+  },
+  "playerStart": {
+    "x": 836,
+    "y": 770,
+    "facing": "up"
+  },
+  "spawns": {
+    "from_kitchen": {
+      "x": 160,
+      "y": 760,
+      "facing": "right"
+    },
+    "from_garage": {
+      "x": 1450,
+      "y": 760,
+      "facing": "left"
+    }
+  },
+  "actors": [],
+  "exits": [
+    {
+      "id": "stairs",
+      "label": "Stairs",
+      "rect": [25, 230, 145, 665],
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_basement",
+      "text": "The stairs climb back toward the sour kitchen light."
+    },
+    {
+      "id": "garage_door",
+      "label": "Garage Door",
+      "rect": [1430, 270, 210, 550],
+      "targetRoom": "garage_workshop",
+      "targetSpawn": "from_basement",
+      "raiseNoise": 10,
+      "text": "The door drags across the concrete. Somewhere above, something answers."
+    }
+  ],
+  "onEnter": [
+    {
+      "once": "basement_storage.first_enter",
+      "text": "The basement air tastes like wet cardboard and old wire. Romeo keeps one hand near the wall."
+    }
+  ],
+  "interests": {
+    "#0000ff": {
+      "id": "stairs",
+      "label": "Stairs",
+      "cursor": "exit",
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_basement",
+      "text": "The stairwell climbs back toward the kitchen. The dark below does not complain when Romeo leaves."
+    },
+    "#00ff00": {
+      "id": "storage_shelves",
+      "label": "Shelves",
+      "once": "basement_storage.shelves.screwdriver",
+      "giveItem": "screwdriver",
+      "text": "A flathead screwdriver slides from behind a row of dead paint cans. Small miracle, cheap handle.",
+      "repeatText": "Rows of jars, tins, and forgotten supplies. The useful thing is already in Romeo's pocket."
+    },
+    "#00ffff": {
+      "id": "utility_sink",
+      "label": "Sink",
+      "text": "A stained utility sink squats under the pipes. Whatever dried in it did not go quietly."
+    },
+    "#ff8800": {
+      "id": "crate",
+      "label": "Crate",
+      "once": "basement_storage.crate.shells",
+      "giveItem": "shotgun_shells",
+      "raiseNoise": 12,
+      "setFlag": "made_basement_noise",
+      "text": "The crate complains loudly. Inside: two shotgun shells. A generous apocalypse would have left more.",
+      "repeatText": "Just splinters and dust now."
+    },
+    "#ffff00": {
+      "id": "breaker_box",
+      "label": "Breaker Box",
+      "once": "basement_storage.breaker_box.fuse",
+      "giveItem": "fuse",
+      "setFlag": "found_fuse",
+      "raiseNoise": 8,
+      "text": "Behind the cracked panel, Romeo finds a fuse that somehow survived the building better than the people did.",
+      "repeatText": "The breaker box is empty now. Its switches stare back like bad teeth."
+    },
+    "#808080": {
+      "id": "small_chest",
+      "label": "Chest",
+      "text": "A small chest waits on the floor, too neat for this room and therefore suspicious."
+    },
+    "#ff00ff": {
+      "id": "brooms",
+      "label": "Brooms",
+      "text": "A broom and mop lean together like exhausted witnesses."
+    },
+    "#955746": {
+      "id": "barrel_coat",
+      "label": "Barrel",
+      "text": "A coat hangs over a barrel. It looks less abandoned than removed."
+    },
+    "#ff0000": {
+      "id": "right_storage",
+      "label": "Crates",
+      "text": "Stacked crates crowd the right wall. The shadows between them are doing too much work."
+    },
+    "#000000": {
+      "id": "garage_door",
+      "label": "Garage Door",
+      "cursor": "exit",
+      "targetRoom": "garage_workshop",
+      "targetSpawn": "from_basement",
+      "raiseNoise": 10,
+      "text": "The door drags across the concrete. Somewhere above, something answers."
+    }
+  }
+}

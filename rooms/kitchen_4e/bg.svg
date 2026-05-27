@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="hallWall" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#08090b"/>
+      <stop offset="0.55" stop-color="#121318"/>
+      <stop offset="1" stop-color="#242321"/>
+    </linearGradient>
+    <linearGradient id="hallFloor" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#151719"/>
+      <stop offset="1" stop-color="#302f2e"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.11"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#040405"/>
+  <polygon points="0,210 520,390 1430,390 1920,235 1920,875 1430,675 520,675 0,875" fill="url(#hallWall)"/>
+  <polygon points="520,675 1430,675 1920,875 1360,1080 560,1080 0,875" fill="url(#hallFloor)"/>
+  <rect x="390" y="350" width="260" height="460" fill="#0a0908"/>
+  <rect x="420" y="390" width="198" height="405" fill="#17110f"/>
+  <rect x="1280" y="330" width="250" height="420" fill="#090909"/>
+  <rect x="1310" y="365" width="190" height="350" fill="#121315"/>
+  <rect x="760" y="500" width="170" height="130" fill="#1a1714"/>
+  <g opacity="0.3" stroke="#73614b" stroke-width="3">
+    <line x1="780" y1="528" x2="910" y2="528"/>
+    <line x1="780" y1="558" x2="910" y2="558"/>
+    <line x1="780" y1="588" x2="910" y2="588"/>
+  </g>
+  <ellipse cx="1020" cy="812" rx="300" ry="50" fill="#000" opacity="0.22"/>
+  <rect width="1920" height="1080" filter="url(#grain)" opacity="0.55"/>
+</svg>

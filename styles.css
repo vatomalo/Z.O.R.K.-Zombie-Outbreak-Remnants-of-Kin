@@ -128,6 +128,18 @@ html, body {
   color: #a9a0a0;
 }
 
+.player-health-row strong {
+  color: #f0e6c8;
+}
+
+.player-health-row.is-hurt strong {
+  color: #d9826b;
+}
+
+.player-health-row.is-critical strong {
+  color: #ff5a4a;
+}
+
 button:focus {
   outline: 2px solid rgba(255, 255, 255, 0.45);
 }

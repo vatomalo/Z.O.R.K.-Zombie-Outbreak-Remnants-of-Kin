@@ -1,26 +1,210 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/FBXLoader.js';
-import { AnimationLibrary, ActorAnimator } from './animation.js?v=actor-actions-1';
-import { TankMovementController } from './movement.js?v=actor-actions-1';
-import { NPC } from './npc.js?v=actor-actions-1';
+import { AnimationLibrary, ActorAnimator } from './animation.js?v=pathfinding-1';
+import { TankMovementController } from './movement.js?v=ctrl-shoot-1';
+import { NPC } from './npc.js?v=pathfinding-1';
 import { strFromU8, unzipSync } from 'https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js';
+
+const ITEM_DATABASE = {
+  small_key: {
+    id: 'small_key',
+    name: 'Small Key',
+    description: 'A small brass key hidden between old books.',
+    icon: '⚿',
+    type: 'key',
+  },
+  lighter: {
+    id: 'lighter',
+    name: 'Lighter',
+    description: 'Almost empty. Still warmer than the room.',
+    icon: '▴',
+    type: 'tool',
+  },
+  screwdriver: {
+    id: 'screwdriver',
+    name: 'Screwdriver',
+    description: 'Flathead. Old handle. Useful enough.',
+    icon: '⌐',
+    type: 'tool',
+    slotCost: 1,
+    useOnWorld: ['car_panel', 'fuse_box_cover'],
+  },
+  fuse: {
+    id: 'fuse',
+    name: 'Fuse',
+    description: 'A small fuse for an old electrical panel.',
+    icon: '▪',
+    type: 'part',
+    slotCost: 1,
+    consumable: true,
+    useOnWorld: ['fuse_box'],
+  },
+  crowbar: {
+    id: 'crowbar',
+    name: 'Crowbar',
+    description: 'Heavy, ugly, persuasive.',
+    icon: '∫',
+    type: 'tool',
+    slotCost: 1,
+    useOnWorld: ['car_hood', 'jammed_locker'],
+  },
+  car_keys: {
+    id: 'car_keys',
+    name: 'Car Keys',
+    description: 'Keys to something that may no longer mean escape.',
+    icon: '⚿',
+    type: 'key',
+  },
+  shotgun_shells: {
+    id: 'shotgun_shells',
+    name: 'Shotgun Shells',
+    description: 'A few shells. Too few to feel safe.',
+    icon: '▪',
+    type: 'ammo',
+    quantity: 2,
+    slotCost: 1,
+  },
+  gasoline_can: {
+    id: 'gasoline_can',
+    name: 'Gasoline Can',
+    description: 'Full enough to matter. Heavy enough to make Romeo careful.',
+    icon: '▰',
+    type: 'puzzle',
+    slotCost: 3,
+    weight: 4,
+    behaviors: {
+      isBulky: true,
+      twoHanded: true,
+      restrictActions: ['shoot', 'melee', 'run', 'climb'],
+      slowsMovement: true,
+      makeNoise: true,
+    },
+    useOnWorld: ['escape_car', 'fuel_cap'],
+  },
+};
 
 const GameState = {
   player: {
     health: 100,
+    maxHealth: 100,
     inventory: [],
     noiseLevel: 0,
+    carryingItem: null,
   },
   currentRoom: 'placeholderRoom',
+  items: ITEM_DATABASE,
   flags: {
     hasInvestigatedBox: false,
     doorOpened: false,
+    carInspected: false,
+    carHoodOpen: false,
+    carPanelOpen: false,
+    carFuseInstalled: false,
+    carFueled: false,
+    carFixed: false,
+    carryHintShown: false,
   },
-  addItem(item) {
-    if (this.player.inventory.length < 8) {
-      this.player.inventory.push(item);
-      InventorySystem.refresh();
+  getItem(itemId) {
+    return this.player.inventory.find((item) => item?.id === itemId) || null;
+  },
+  hasItem(itemId) {
+    return Boolean(this.getItem(itemId));
+  },
+  getInventoryUsedSlots() {
+    return this.player.inventory.reduce((total, item) => total + (item?.slotCost || 1), 0);
+  },
+  canAddItem(itemId) {
+    const template = typeof itemId === 'string' ? this.items[itemId] : itemId;
+    if (!template) return false;
+    if (!template.allowDuplicates && this.hasItem(template.id)) return false;
+    return this.getInventoryUsedSlots() + (template.slotCost || 1) <= InventorySystem.maxSlots;
+  },
+  addItem(itemOrId) {
+    const template = typeof itemOrId === 'string' ? this.items[itemOrId] : itemOrId;
+    if (!template?.id) {
+      console.warn('Missing item data:', itemOrId);
+      return false;
     }
+    if (!template.allowDuplicates && this.hasItem(template.id)) {
+      InventorySystem.refresh();
+      return false;
+    }
+    if (this.getInventoryUsedSlots() + (template.slotCost || 1) > InventorySystem.maxSlots) {
+      NarratorVoice.speak('Romeo has no room for anything else.', [{ label: 'Continue', action: () => { } }]);
+      return false;
+    }
+    this.player.inventory.push({ ...template });
+    InventorySystem.refresh();
+    return true;
+  },
+  removeItem(itemId) {
+    const index = this.player.inventory.findIndex((item) => item?.id === itemId);
+    if (index < 0) return false;
+    this.player.inventory.splice(index, 1);
+    InventorySystem.refresh();
+    return true;
+  },
+  setFlag(flagId, value = true) {
+    if (!flagId) return;
+    this.flags[flagId] = value;
+  },
+  hasFlag(flagId) {
+    return Boolean(this.flags[flagId]);
+  },
+  damagePlayer(amount, source = {}) {
+    const damage = Math.max(0, Number(amount) || 0);
+    if (!damage) return false;
+    this.player.health = Math.max(0, this.player.health - damage);
+    this.updatePlayerHealthUI();
+    this.setFlag('player_damaged');
+    if (this.player.health <= 0) this.setFlag('player_down');
+    console.info(`Romeo takes ${damage} damage from ${source.id || source.label || 'danger'}. Health: ${this.player.health}`);
+    return true;
+  },
+  healPlayer(amount) {
+    const healing = Math.max(0, Number(amount) || 0);
+    if (!healing) return false;
+    this.player.health = Math.min(this.player.maxHealth, this.player.health + healing);
+    this.updatePlayerHealthUI();
+    return true;
+  },
+  updatePlayerHealthUI() {
+    const value = document.getElementById('player-health');
+    const row = value?.closest('.player-health-row');
+    if (!value) return;
+    const health = Math.round(this.player.health);
+    const maxHealth = Math.round(this.player.maxHealth || 100);
+    value.textContent = `${health}/${maxHealth}`;
+    row?.classList.toggle('is-hurt', health < maxHealth);
+    row?.classList.toggle('is-critical', health <= maxHealth * 0.3);
+  },
+  startCarry(itemOrId) {
+    const item = typeof itemOrId === 'string' ? this.getItem(itemOrId) || this.items[itemOrId] : itemOrId;
+    if (!item) return false;
+    this.player.carryingItem = { ...item };
+    InventorySystem.refresh();
+    return true;
+  },
+  stopCarry() {
+    this.player.carryingItem = null;
+    InventorySystem.refresh();
+  },
+  isCarryingTwoHanded() {
+    return Boolean(this.player.carryingItem?.behaviors?.twoHanded);
+  },
+  canUseCombat() {
+    return !this.isCarryingTwoHanded();
+  },
+  checkCarFixed() {
+    const fixed = this.flags.carHoodOpen
+      && this.flags.carPanelOpen
+      && this.flags.carFuseInstalled
+      && this.flags.carFueled;
+    if (fixed && !this.flags.carFixed) {
+      this.setFlag('carFixed', true);
+      return true;
+    }
+    return false;
   },
   setRoom(roomId, spawnId = null) {
     const previousRoom = this.currentRoom;
@@ -46,6 +230,9 @@ const RoomManager = {
     basement_storage: './rooms/basement_storage/room.json',
     garage_workshop: './rooms/garage_workshop/room.json',
     old_kitchen: './rooms/old_kitchen/room.json',
+    street: './rooms/street/room.json',
+    street_to_downtown: './rooms/street_to_downtown/room.json',
+    downtown_swarm: './rooms/downtown_swarm/room.json',
   },
   hybridRoomData: null,
   hallwayRoomData: null,
@@ -55,6 +242,8 @@ const RoomManager = {
   hybridWalkMask: null,
   hybridInterestMap: null,
   roomMaps: {},
+  navGrids: {},
+  currentPathDebug: null,
   hoverInterestId: null,
   debugWalkMaskOverlay: null,
   raycaster: new THREE.Raycaster(),
@@ -68,6 +257,18 @@ const RoomManager = {
   characterModel: null,
   characterHeadBone: null,
   characterHeadBaseRotation: null,
+  characterRightHandBone: null,
+  weaponModel: null,
+  weaponRoot: null,
+  weaponMuzzle: null,
+  weaponConfig: {
+    path: 'Models/glock.fbx',
+    textureFolder: 'glock',
+    scale: 0.012,
+    position: [0.055, 0.02, 0.035],
+    rotation: [-1.5708, 0, 1.5708],
+    muzzlePosition: [0, 0, 0.34],
+  },
   characterAnimator: null,
   characterAnimationState: null,
   characterInteractionAnimationUntil: 0,
@@ -76,19 +277,30 @@ const RoomManager = {
     idle: './Animation/idle.fbx',
     walk: './Animation/walk.fbx',
     backpedal: './Animation/Walk Backward.fbx',
+    carry_idle: './Animation/carry_idle.fbx',
+    carry_walk: './Animation/carry_walk.fbx',
     aim: './Animation/Shoot.fbx',
   },
   characterAnimationSpeeds: {
     idle: 1,
     walk: 1.75,
     backpedal: 1.15,
+    carry_idle: 1,
+    carry_walk: 1,
     pickup: 1,
   },
   characterAimPoseTime: 0.82,
   animationLibrary: new AnimationLibrary(),
   npcAnimationLibrary: new AnimationLibrary(),
   npcs: [],
+  placedModels: [],
+  placedModelPromises: new Map(),
+  damageCooldowns: new Map(),
+  cinematicActive: false,
+  driveParallax: null,
+  driveOverlay: null,
   npcAnimationPromise: null,
+  pendingActorStates: {},
   characterCollisionRadius: 0.78,
   characterHeightScale: 0.98,
   npcCollisionRadius: 1,
@@ -110,6 +322,8 @@ const RoomManager = {
     propScale: 0.78,
     backgroundExposure: 1,
     foregroundOpacity: 1,
+    backgroundTint: '#ffffff',
+    backgroundTintStrength: 0,
   },
   hybridLighting: {
     ambientColor: 0x38414a,
@@ -123,6 +337,10 @@ const RoomManager = {
     rimColor: 0xd8e6ff,
     rimIntensity: 0.45,
     rimPosition: new THREE.Vector3(2.9, 2.0, -2.4),
+    fogColor: 0x040408,
+    fogNear: 4,
+    fogFar: 13,
+    clearColor: 0x050506,
   },
   headLook: {
     x: 0,
@@ -190,6 +408,23 @@ const RoomManager = {
     window.DEBUG_PLAYER_START = () => this.debugPlayerStart();
     window.DEBUG_NPCS = () => this.debugActorSpacing();
     window.DEBUG_ROOMS = () => this.debugRooms();
+    window.DEBUG_PATH = () => this.currentPathDebug;
+    window.DEBUG_NAVGRID = () => {
+      const grid = this.buildNavigationGrid();
+      return grid ? {
+        roomId: grid.roomId,
+        cellSize: grid.cellSize,
+        cols: grid.cols,
+        rows: grid.rows,
+        walkableCount: grid.walkableCount,
+        total: grid.walkable.length,
+      } : null;
+    };
+    window.DEBUG_PATH_FROM_TO = (sx, sy, gx, gy) => {
+      const rawPath = this.findPathRoomPixels({ x: sx, y: sy }, { x: gx, y: gy });
+      const path = rawPath ? this.simplifyPath(rawPath) : null;
+      return { rawPath, path };
+    };
     window.DEBUG_ENTER_ROOM = (roomId, spawnId = null) => {
       GameState.setRoom(roomId, spawnId);
       return this.debugRooms()[roomId] || null;
@@ -229,6 +464,7 @@ const RoomManager = {
     Object.entries(this.roomDataById).forEach(([roomId, roomData]) => {
       const previousRoomData = this.hybridRoomData;
       this.hybridRoomData = roomData;
+      this.applyHybridRoomSettings(roomData);
       const room = roomId === 'apt_708_entry'
         ? this.createPlaceholderRoom()
         : this.createPrerenderedRoom(roomData);
@@ -325,6 +561,7 @@ const RoomManager = {
     this.hybridWalkMask = room.walkMask || null;
     this.hybridInterestMap = room.interestMap || null;
     this.applyHybridRoomSettings(room.roomData);
+    this.applyRoomLightingProfile(room.roomData, room.scene);
   },
 
   async loadRoomJson(roomId) {
@@ -552,9 +789,16 @@ const RoomManager = {
       'propScale',
       'backgroundExposure',
       'foregroundOpacity',
+      'backgroundTintStrength',
     ].forEach((key) => {
       if (Number.isFinite(composition[key])) this.hybridComposition[key] = composition[key];
     });
+    this.hybridComposition.backgroundTint = typeof composition.backgroundTint === 'string'
+      ? composition.backgroundTint
+      : '#ffffff';
+    this.hybridComposition.backgroundTintStrength = Number.isFinite(composition.backgroundTintStrength)
+      ? composition.backgroundTintStrength
+      : 0;
     this.applyHybridLightingSettings(hybrid.lighting);
     this.walkPlaneConfig = hybrid.walkPlaneFromRoomPixels || null;
     this.setHorizontalWalkSurface(Number.isFinite(hybrid.walkSurfaceY) ? hybrid.walkSurfaceY : 0);
@@ -589,6 +833,8 @@ const RoomManager = {
       'practicalIntensity',
       'windowIntensity',
       'rimIntensity',
+      'fogNear',
+      'fogFar',
     ].forEach((key) => {
       if (Number.isFinite(lighting[key])) this.hybridLighting[key] = lighting[key];
     });
@@ -598,6 +844,8 @@ const RoomManager = {
       'practicalColor',
       'windowColor',
       'rimColor',
+      'fogColor',
+      'clearColor',
     ].forEach((key) => {
       if (typeof lighting[key] === 'string' || Number.isFinite(lighting[key])) {
         this.hybridLighting[key] = new THREE.Color(lighting[key]).getHex();
@@ -613,6 +861,42 @@ const RoomManager = {
         this.hybridLighting[settingKey] = this.arrayToVector3(lighting[jsonKey], this.hybridLighting[settingKey]);
       }
     });
+  },
+
+  applyRoomLightingProfile(roomData = null, scene = null) {
+    const lighting = roomData?.hybrid3d?.lighting || {};
+    this.applyHybridLightingSettings(lighting);
+    const activeScene = scene || this.currentRoom?.scene;
+    if (activeScene) {
+      activeScene.fog = new THREE.Fog(
+        this.hybridLighting.fogColor,
+        this.hybridLighting.fogNear,
+        this.hybridLighting.fogFar
+      );
+      activeScene.traverse((object) => {
+        if (!object.userData?.hybridRoomLight) return;
+        const key = object.userData.hybridRoomLight;
+        if (key === 'ambient') {
+          object.color.setHex(this.hybridLighting.ambientColor);
+          object.intensity = this.hybridLighting.ambientIntensity;
+        } else if (key === 'practical') {
+          object.color.setHex(this.hybridLighting.practicalColor);
+          object.intensity = this.hybridLighting.practicalIntensity;
+          object.position.copy(this.hybridLighting.practicalPosition);
+        } else if (key === 'window') {
+          object.color.setHex(this.hybridLighting.windowColor);
+          object.intensity = this.hybridLighting.windowIntensity;
+          object.position.copy(this.hybridLighting.windowPosition);
+        } else if (key === 'rim') {
+          object.color.setHex(this.hybridLighting.rimColor);
+          object.intensity = this.hybridLighting.rimIntensity;
+          object.position.copy(this.hybridLighting.rimPosition);
+        }
+      });
+    }
+    if (this.renderer) {
+      this.renderer.setClearColor(this.hybridLighting.clearColor, 1);
+    }
   },
 
   createPlaceholderRoom() {
@@ -652,6 +936,7 @@ const RoomManager = {
       this.character = character;
       this.characterModel = fbx;
       this.setupHeadLook(fbx);
+      this.setupWeaponAttachment(fbx);
       this.setupCharacterAnimations(fbx, character);
     }, undefined, (error) => {
       console.error('Failed to load Models/MC.fbx', error);
@@ -661,6 +946,9 @@ const RoomManager = {
     });
     this.getRoomActorConfigs().forEach((config) => {
       this.loadSceneModel(scene, config);
+    });
+    this.getRoomPropConfigs().forEach((config) => {
+      this.loadPlacedModel(scene, config);
     });
 
     const door = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.9, 0.12), new THREE.MeshBasicMaterial({
@@ -697,6 +985,11 @@ const RoomManager = {
     return new THREE.Vector2(value[0], value[1]);
   },
 
+  arrayToEuler(value, fallback) {
+    if (!Array.isArray(value) || value.length < 3) return fallback;
+    return new THREE.Euler(value[0], value[1], value[2]);
+  },
+
   getAssetPath(path) {
     if (!path || typeof path !== 'string') return null;
     if (/^(blob:|https?:)?\/\//i.test(path) || path.startsWith('blob:') || path.startsWith('./') || path.startsWith('../')) return path;
@@ -725,9 +1018,16 @@ const RoomManager = {
   getRoomActorConfigs() {
     const roomId = this.hybridRoomData?.id || null;
     return (this.hybridRoomData?.actors || [])
-      .filter((actor) => !actor.type || actor.type === 'npc')
+      .filter((actor) => !actor.type || actor.type === 'npc' || actor.type === 'zombie')
       .map((actor) => ({ ...this.normalizeActorConfig(actor), roomId }))
       .filter((actor) => actor.path);
+  },
+
+  getRoomPropConfigs() {
+    const roomId = this.hybridRoomData?.id || null;
+    return (this.hybridRoomData?.props || this.hybridRoomData?.models || [])
+      .map((prop) => ({ ...this.normalizeActorConfig(prop), roomId }))
+      .filter((prop) => prop.path);
   },
 
   normalizeActorConfig(actor) {
@@ -780,6 +1080,8 @@ const RoomManager = {
       depthTest = true,
       opacity = 1,
       exposure = 1,
+      tint = '#ffffff',
+      tintStrength = 0,
     }) => {
       const texture = loader.load(src, (loadedTexture) => {
         loadedTexture.colorSpace = THREE.SRGBColorSpace;
@@ -792,6 +1094,8 @@ const RoomManager = {
         texture,
         exposure,
         opacity,
+        tint,
+        tintStrength,
         transparent,
         depthTest,
       });
@@ -808,6 +1112,8 @@ const RoomManager = {
       z: -12,
       renderOrder: -100,
       exposure: this.hybridComposition.backgroundExposure,
+      tint: this.hybridComposition.backgroundTint,
+      tintStrength: this.hybridComposition.backgroundTintStrength,
     });
     addLayer({
       src: this.hybridRoomLayerPaths.foreground,
@@ -819,12 +1125,14 @@ const RoomManager = {
     });
   },
 
-  createRoomPlateMaterial({ texture, exposure = 1, opacity = 1, transparent = false, depthTest = true }) {
+  createRoomPlateMaterial({ texture, exposure = 1, opacity = 1, tint = '#ffffff', tintStrength = 0, transparent = false, depthTest = true }) {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         map: { value: texture },
         exposure: { value: exposure },
         opacity: { value: opacity },
+        tint: { value: new THREE.Color(tint) },
+        tintStrength: { value: tintStrength },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -837,12 +1145,15 @@ const RoomManager = {
         uniform sampler2D map;
         uniform float exposure;
         uniform float opacity;
+        uniform vec3 tint;
+        uniform float tintStrength;
         varying vec2 vUv;
         void main() {
           vec4 texel = texture2D(map, vUv);
           vec3 lifted = texel.rgb * exposure;
           lifted = lifted / (lifted + vec3(0.35));
           lifted = pow(lifted, vec3(0.82));
+          lifted = mix(lifted, lifted * tint, clamp(tintStrength, 0.0, 1.0));
           gl_FragColor = vec4(lifted, texel.a * opacity);
         }
       `,
@@ -980,21 +1291,25 @@ const RoomManager = {
     const lighting = this.hybridLighting;
 
     const ambient = new THREE.AmbientLight(lighting.ambientColor, lighting.ambientIntensity);
+    ambient.userData.hybridRoomLight = 'ambient';
     scene.add(ambient);
 
     const practical = new THREE.PointLight(lighting.practicalColor, lighting.practicalIntensity, 8.5, 1.8);
     practical.position.copy(lighting.practicalPosition);
+    practical.userData.hybridRoomLight = 'practical';
     scene.add(practical);
 
     const windowFill = new THREE.DirectionalLight(lighting.windowColor, lighting.windowIntensity);
     windowFill.position.copy(lighting.windowPosition);
     windowFill.target.position.set(0.4, 0.9, 0.2);
+    windowFill.userData.hybridRoomLight = 'window';
     scene.add(windowFill);
     scene.add(windowFill.target);
 
     const rim = new THREE.DirectionalLight(lighting.rimColor, lighting.rimIntensity);
     rim.position.copy(lighting.rimPosition);
     rim.target.position.set(0.4, 0.8, 0.7);
+    rim.userData.hybridRoomLight = 'rim';
     scene.add(rim);
     scene.add(rim.target);
   },
@@ -1080,6 +1395,12 @@ const RoomManager = {
 
     this.addRoomLayersToCamera(camera, roomData, layerSize);
     this.addHybridActorLighting(scene);
+    this.getRoomActorConfigs().forEach((config) => {
+      this.loadSceneModel(scene, config);
+    });
+    this.getRoomPropConfigs().forEach((config) => {
+      this.loadPlacedModel(scene, config);
+    });
 
     return {
       id: roomData.id,
@@ -1105,6 +1426,8 @@ const RoomManager = {
       depthTest = true,
       opacity = 1,
       exposure = 1,
+      tint = '#ffffff',
+      tintStrength = 0,
     }) => {
       if (!src) return null;
       const texture = loader.load(this.getRoomAssetPath(roomData, src), (loadedTexture) => {
@@ -1118,6 +1441,8 @@ const RoomManager = {
         texture,
         exposure,
         opacity,
+        tint,
+        tintStrength,
         transparent,
         depthTest,
       });
@@ -1134,6 +1459,8 @@ const RoomManager = {
       z: -12,
       renderOrder: -100,
       exposure: composition.backgroundExposure ?? 1,
+      tint: composition.backgroundTint || '#ffffff',
+      tintStrength: composition.backgroundTintStrength ?? 0,
     });
     addLayer({
       src: roomData?.hybrid3d?.layers?.foreground || roomData?.layers?.foreground,
@@ -1290,6 +1617,93 @@ const RoomManager = {
     this.characterHeadBaseRotation = this.characterHeadBone?.rotation.clone() || null;
   },
 
+  setupWeaponAttachment(model) {
+    this.characterRightHandBone = this.findRightHandBone(model);
+    window.DEBUG_HAND_BONES = () => this.listCharacterBones(/hand|wrist|index|thumb/i);
+    window.DEBUG_WEAPON = () => this.getWeaponDebugState();
+    window.SET_WEAPON_OFFSET = (position = this.weaponConfig.position, rotation = this.weaponConfig.rotation, scale = this.weaponConfig.scale) => {
+      this.weaponConfig.position = position;
+      this.weaponConfig.rotation = rotation;
+      this.weaponConfig.scale = scale;
+      this.applyWeaponTransform();
+      return this.getWeaponDebugState();
+    };
+    this.loadAndAttachWeapon();
+  },
+
+  findRightHandBone(model) {
+    const candidates = [];
+    model.traverse((child) => {
+      if (!child.isBone) return;
+      candidates.push(child);
+    });
+    return candidates.find((bone) => /RightHand|Right_Hand|hand[_\-. ]?r|r[_\-. ]?hand|mixamorig.*RightHand|CC_Base_R_Hand/i.test(bone.name))
+      || candidates.find((bone) => /right.*hand|hand.*right/i.test(bone.name))
+      || null;
+  },
+
+  listCharacterBones(pattern = null) {
+    const bones = [];
+    this.characterModel?.traverse((child) => {
+      if (child.isBone && (!pattern || pattern.test(child.name))) bones.push(child.name);
+    });
+    return bones;
+  },
+
+  loadAndAttachWeapon() {
+    if (!this.characterRightHandBone) {
+      console.warn('Right hand bone not found; Glock not attached.', this.listCharacterBones(/hand|wrist/i));
+      return;
+    }
+    if (this.weaponRoot) {
+      this.characterRightHandBone.add(this.weaponRoot);
+      return;
+    }
+    const loader = this.createModelLoader(this.weaponConfig.textureFolder);
+    loader.load(this.getGlobalAssetPath(this.weaponConfig.path), (fbx) => {
+      this.prepareModelMaterials(fbx);
+      this.weaponModel = fbx;
+      this.weaponRoot = new THREE.Group();
+      this.weaponRoot.name = 'romeo_glock_attachment';
+      this.weaponRoot.add(fbx);
+      this.weaponMuzzle = new THREE.Object3D();
+      this.weaponMuzzle.name = 'romeo_glock_muzzle';
+      this.weaponRoot.add(this.weaponMuzzle);
+      this.applyWeaponTransform();
+      this.characterRightHandBone.add(this.weaponRoot);
+    }, undefined, (error) => {
+      console.warn(`Failed to load ${this.weaponConfig.path}`, error);
+    });
+  },
+
+  applyWeaponTransform() {
+    if (!this.weaponRoot) return;
+    this.weaponRoot.position.copy(this.arrayToVector3(this.weaponConfig.position, new THREE.Vector3()));
+    this.weaponRoot.rotation.copy(this.arrayToEuler(this.weaponConfig.rotation, new THREE.Euler()));
+    const scale = Number.isFinite(this.weaponConfig.scale) ? this.weaponConfig.scale : 1;
+    this.weaponRoot.scale.setScalar(scale);
+    if (this.weaponMuzzle) {
+      this.weaponMuzzle.position.copy(this.arrayToVector3(this.weaponConfig.muzzlePosition, new THREE.Vector3(0, 0, 0.34)));
+    }
+  },
+
+  getWeaponMuzzleWorldPosition() {
+    if (!this.weaponMuzzle) return null;
+    this.weaponMuzzle.updateWorldMatrix(true, false);
+    return this.weaponMuzzle.getWorldPosition(new THREE.Vector3());
+  },
+
+  getWeaponDebugState() {
+    const muzzle = this.getWeaponMuzzleWorldPosition();
+    return {
+      hasRightHandBone: Boolean(this.characterRightHandBone),
+      rightHandBone: this.characterRightHandBone?.name || null,
+      hasWeapon: Boolean(this.weaponRoot),
+      config: this.weaponConfig,
+      muzzleWorld: muzzle ? { x: muzzle.x, y: muzzle.y, z: muzzle.z } : null,
+    };
+  },
+
   setHeadLookFromPointer(event) {
     const rect = this.renderer.domElement.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -1347,6 +1761,22 @@ const RoomManager = {
     this.playCharacterAnimation('backpedal', fadeSeconds);
   },
 
+  playCarryIdleAnimation(fadeSeconds = 0.18) {
+    if (this.hasCharacterAction('carry_idle')) {
+      this.playCharacterAnimation('carry_idle', fadeSeconds);
+      return;
+    }
+    this.playIdleAnimation(fadeSeconds);
+  },
+
+  playCarryWalkAnimation(fadeSeconds = 0.18) {
+    if (this.hasCharacterAction('carry_walk')) {
+      this.playCharacterAnimation('carry_walk', fadeSeconds);
+      return;
+    }
+    this.playWalkAnimation(fadeSeconds);
+  },
+
   playAimAnimation(fadeSeconds = 0.12) {
     if (!this.characterAnimator || this.characterAnimationState === 'aim') return;
     if (!this.hasCharacterAction('aim')) return;
@@ -1380,10 +1810,14 @@ const RoomManager = {
   },
 
   isPlayerBusy() {
-    return this.characterInteractionAnimationUntil > performance.now() || NarratorVoice.isBusy();
+    return this.cinematicActive || this.characterInteractionAnimationUntil > performance.now() || NarratorVoice.isBusy();
   },
 
   update(delta, movementState = 'idle') {
+    if (this.cinematicActive && this.character) {
+      this.character.visible = false;
+    }
+    this.applyActorDepthScaling();
     const interactionAnimationActive = this.characterInteractionAnimationUntil > performance.now();
     if (interactionAnimationActive) {
       // Let one-shot JSON-driven inspection animations finish before returning to locomotion.
@@ -1393,6 +1827,10 @@ const RoomManager = {
       this.playWalkAnimation();
     } else if (movementState === 'backpedal') {
       this.playBackpedalAnimation();
+    } else if (movementState === 'carry-walk') {
+      this.playCarryWalkAnimation();
+    } else if (movementState === 'carry-idle') {
+      this.playCarryIdleAnimation();
     } else {
       this.playIdleAnimation();
     }
@@ -1410,16 +1848,301 @@ const RoomManager = {
       });
     } else {
       activeNPCs.forEach((npc) => npc.update(delta, {
-        blockers: [characterBlocker, ...activeNPCs].filter(Boolean),
+        blockers: [characterBlocker, ...activeNPCs, ...this.getActivePropBlockers()].filter(Boolean),
         canMoveTo: (position, fromPosition, movingNpc) => this.canNPCMoveToWorldPosition(position, fromPosition, movingNpc),
       }));
     }
     this.resolveActorOverlaps();
+    this.applyZombieContactDamage();
+    this.updateDriveParallax(delta);
+  },
+
+  applyActorDepthScaling() {
+    this.applyDepthScaleToActor(this.character, this.characterHeightScale);
+    this.getActiveNPCs().forEach((npc) => this.applyDepthScaleToActor(npc.root, 1));
+  },
+
+  applyDepthScaleToActor(actor, baseScale = 1) {
+    if (!actor) return;
+    const scale = this.getActorDepthScale(actor.position, baseScale);
+    actor.scale.setScalar(scale);
+    actor.position.y = this.getWalkSurfaceYAt(actor.position);
+  },
+
+  getActorDepthScale(position, baseScale = 1) {
+    const config = this.hybridRoomData?.hybrid3d?.actorDepthScale;
+    if (!config || !position) return 1;
+    const point = this.getRoomPixelFromWorldPosition(position);
+    if (!point) return 1;
+    const topY = Number.isFinite(config.topY) ? config.topY : 0;
+    const bottomY = Number.isFinite(config.bottomY) ? config.bottomY : (this.hybridRoomData?.camera?.height || 1080);
+    const topScale = Number.isFinite(config.topScale) ? config.topScale : 0.65;
+    const bottomScale = Number.isFinite(config.bottomScale) ? config.bottomScale : 1.05;
+    const curve = Number.isFinite(config.curve) ? config.curve : 1.15;
+    const t = THREE.MathUtils.clamp((point.y - topY) / Math.max(1, bottomY - topY), 0, 1);
+    return THREE.MathUtils.lerp(topScale, bottomScale, Math.pow(t, curve)) * baseScale;
+  },
+
+  applyZombieContactDamage() {
+    if (!this.character || this.cinematicActive || GameState.hasFlag('player_down')) return;
+    const now = performance.now();
+    this.getActiveNPCs()
+      .filter((npc) => npc.actorType === 'zombie' && (npc.damage || 0) > 0)
+      .forEach((npc) => {
+        const npcPosition = npc.root?.position;
+        if (!npcPosition) return;
+        const distance = Math.hypot(this.character.position.x - npcPosition.x, this.character.position.z - npcPosition.z);
+        const attackRadius = npc.attackRadius ?? ((npc.collisionRadius ?? this.npcCollisionRadius) + this.characterCollisionRadius);
+        if (distance > attackRadius) return;
+
+        const key = `${npc.roomId || 'global'}:${npc.id}`;
+        const nextAllowed = this.damageCooldowns.get(key) || 0;
+        if (now < nextAllowed) return;
+        this.damageCooldowns.set(key, now + (npc.damageCooldownMs ?? 1500));
+        GameState.damagePlayer(npc.damage, { id: npc.id, label: npc.label });
+        ThreatManager.alertRoom(GameState.currentRoom, 'danger');
+        if (!NarratorVoice.isBusy()) {
+          NarratorVoice.setAmbientText(GameState.player.health > 0
+            ? `The dead thing catches Romeo. Health ${GameState.player.health}.`
+            : 'Romeo goes down under dead hands.');
+        }
+      });
+  },
+
+  getPlacedModel(modelId, roomId = this.hybridRoomData?.id || this.currentRoom?.roomData?.id || null) {
+    return this.placedModels.find((object) => object.userData?.modelId === modelId && (!roomId || object.roomId === roomId)) || null;
+  },
+
+  wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  },
+
+  nextFrame() {
+    return new Promise((resolve) => requestAnimationFrame(resolve));
+  },
+
+  async playDriveSequence(sequence = {}, action = {}) {
+    if (this.cinematicActive) return false;
+    this.cinematicActive = true;
+    window.App?.movement?.clearTarget?.();
+
+    const firstRoom = sequence.firstRoom || 'street';
+    const firstSpawn = sequence.firstSpawn || 'from_garage';
+    const secondRoom = sequence.secondRoom || action.targetRoom || 'street_to_downtown';
+    const secondSpawn = sequence.secondSpawn || action.targetSpawn || 'from_garage';
+    const restoreCharacterVisible = this.character?.visible !== false;
+
+    try {
+      GameState.setRoom(firstRoom, firstSpawn);
+      if (this.character) this.character.visible = false;
+      NarratorVoice.setAmbientText(sequence.text || action.text || 'Romeo gets the car into the street.');
+      this.render();
+      await this.nextFrame();
+      await this.playFirstPersonDriveCollapse(sequence);
+      this.removeDriveOverlay();
+      GameState.setRoom(secondRoom, secondSpawn);
+      if (this.character) this.character.visible = false;
+      this.render();
+      await this.nextFrame();
+      const secondRoomId = this.hybridRoomData?.id || this.currentRoom?.roomData?.id || secondRoom;
+      await this.waitForPlacedModel(sequence.carModelId || 'escape_car', secondRoomId, sequence.carLoadTimeoutMs ?? 7000);
+      if (this.character) this.character.visible = false;
+      this.startDriveParallax(sequence);
+      await this.wait(sequence.secondHoldMs ?? 2300);
+      this.cleanupDriveParallax();
+      if (this.character) this.character.visible = restoreCharacterVisible;
+      NarratorVoice.setAmbientText(sequence.afterText || 'The car rolls into the next block, alive enough to count.');
+    } finally {
+      this.cleanupDriveParallax();
+      this.removeDriveOverlay();
+      this.cinematicActive = false;
+    }
+    return true;
+  },
+
+  async playFirstPersonDriveCollapse(sequence = {}) {
+    const canvas = this.renderer?.domElement;
+    if (!canvas) return Promise.resolve();
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '0';
+    overlay.style.zIndex = '20';
+    overlay.style.pointerEvents = 'none';
+    overlay.style.overflow = 'hidden';
+    overlay.style.background = '#000';
+    overlay.style.transformOrigin = sequence.vanishingPoint || '50% 45%';
+
+    const imageSrc = sequence.firstPersonImage || this.getCurrentRoomBackgroundSrc();
+    const roadLoop = document.createElement('div');
+    roadLoop.style.position = 'absolute';
+    roadLoop.style.inset = '-18% -18%';
+    roadLoop.style.backgroundImage = `url("${imageSrc}")`;
+    roadLoop.style.backgroundSize = 'cover';
+    roadLoop.style.backgroundPosition = '50% 50%';
+    roadLoop.style.transformOrigin = sequence.vanishingPoint || '50% 45%';
+    roadLoop.style.filter = 'contrast(1.08) brightness(0.82)';
+    roadLoop.style.transform = 'scale(1)';
+    roadLoop.style.willChange = 'transform, opacity';
+
+    const collapseMs = sequence.collapseMs ?? 1250;
+    const style = document.createElement('style');
+    style.textContent = `
+      .romeo-drive-zoom {
+        transition: transform ${collapseMs}ms cubic-bezier(.08,.74,.18,1), opacity ${collapseMs}ms ease-in;
+        transform: scale(var(--drive-zoom-scale, 2.05)) !important;
+        opacity: 0.16 !important;
+      }
+    `;
+
+    const windshield = document.createElement('div');
+    windshield.innerHTML = `
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 0 H100 V100 H0 Z" fill="rgba(0,0,0,0.10)"/>
+        <path d="M0 74 C18 68 82 68 100 74 V100 H0 Z" fill="rgba(0,0,0,0.88)"/>
+        <path d="M0 0 H13 L24 100 H0 Z" fill="rgba(0,0,0,0.76)"/>
+        <path d="M87 0 H100 V100 H76 Z" fill="rgba(0,0,0,0.76)"/>
+        <path d="M13 0 H87 L75 73 H25 Z" fill="none" stroke="rgba(220,220,205,0.12)" stroke-width="0.7"/>
+      </svg>`;
+    windshield.style.position = 'absolute';
+    windshield.style.inset = '0';
+
+    overlay.appendChild(style);
+    overlay.appendChild(roadLoop);
+    overlay.appendChild(windshield);
+    document.body.appendChild(overlay);
+    this.driveOverlay = overlay;
+
+    await this.nextFrame();
+    await this.wait(sequence.firstHoldMs ?? 900);
+
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        roadLoop.style.setProperty('--drive-zoom-scale', String(sequence.firstPersonZoomScale ?? 2.05));
+        roadLoop.classList.add('romeo-drive-zoom');
+      });
+      setTimeout(resolve, collapseMs + 80);
+    });
+  },
+
+  getCurrentRoomBackgroundSrc() {
+    const source = this.hybridRoomData?.hybrid3d?.layers?.background || this.hybridRoomData?.layers?.background;
+    return this.getRoomAssetPath(this.hybridRoomData, source);
+  },
+
+  removeDriveOverlay() {
+    if (!this.driveOverlay) return;
+    this.driveOverlay.remove();
+    this.driveOverlay = null;
+  },
+
+  startDriveParallax(sequence = {}) {
+    const roomId = this.hybridRoomData?.id || this.currentRoom?.roomData?.id;
+    const car = this.getPlacedModel(sequence.carModelId || 'escape_car', roomId);
+    if (car) {
+      car.visible = true;
+      car.position.x = sequence.carHoldX ?? sequence.carStartX ?? -1.35;
+      if (Number.isFinite(sequence.carY)) car.position.y = sequence.carY;
+      car.position.z = sequence.carZ ?? car.position.z;
+    }
+    const tiledLayers = this.createDriveParallaxTiles(sequence);
+    this.driveParallax = {
+      elapsed: 0,
+      duration: (sequence.parallaxMs ?? 6200) / 1000,
+      car,
+      carModelId: sequence.carModelId || 'escape_car',
+      roomId,
+      carStartX: sequence.carStartX ?? -2.25,
+      carHoldX: sequence.carHoldX ?? -1.35,
+      carEndX: sequence.carEndX ?? 0.35,
+      carBob: sequence.carBob ?? 0.035,
+      carBaseY: car?.position.y ?? 0,
+      layerWidth: this.currentRoom?.camera?.userData?.layerSize?.x || this.getHybridLayerSize().x,
+      scrollWorldUnits: sequence.scrollWorldUnits ?? (this.currentRoom?.camera?.userData?.layerSize?.x || this.getHybridLayerSize().x) * (sequence.sideLoops ?? 3),
+      tiledLayers,
+    };
+  },
+
+  createDriveParallaxTiles(sequence = {}) {
+    const camera = this.currentRoom?.camera;
+    const layerWidth = camera?.userData?.layerSize?.x || this.getHybridLayerSize().x;
+    const loops = Math.max(2, Math.ceil(sequence.sideLoops ?? 3));
+    const originalLayers = (camera?.children || [])
+      .filter((child) => child.isMesh && child.material?.uniforms?.map);
+    const groups = [];
+
+    originalLayers.forEach((child, layerIndex) => {
+      const clones = [];
+      for (let index = -1; index <= loops + 1; index += 1) {
+        const clone = child.clone();
+        clone.material = child.material;
+        clone.position.x = child.position.x + layerWidth * index;
+        clone.userData.driveClone = true;
+        clone.renderOrder = child.renderOrder;
+        camera.add(clone);
+        clones.push({ mesh: clone, baseX: clone.position.x });
+      }
+      child.visible = false;
+      groups.push({
+        original: child,
+        clones,
+        depth: layerIndex === 0 ? 1 : 0.55,
+      });
+    });
+
+    return groups;
+  },
+
+  cleanupDriveParallax() {
+    if (!this.driveParallax) return;
+    this.driveParallax.tiledLayers?.forEach((group) => {
+      group.original.visible = true;
+      group.clones.forEach(({ mesh }) => mesh.removeFromParent());
+    });
+    this.driveParallax = null;
+  },
+
+  waitForPlacedModel(modelId, roomId, timeoutMs = 7000) {
+    const existing = this.getPlacedModel(modelId, roomId);
+    if (existing) return Promise.resolve(existing);
+    const key = `${roomId || 'global'}:${modelId}`;
+    const pending = this.placedModelPromises.get(key);
+    if (!pending) {
+      console.warn(`Placed model not queued yet: ${key}`);
+      return Promise.resolve(null);
+    }
+    return Promise.race([
+      pending,
+      this.wait(timeoutMs).then(() => {
+        console.warn(`Timed out waiting for placed model: ${key}`);
+        return null;
+      }),
+    ]);
+  },
+
+  updateDriveParallax(delta) {
+    if (!this.driveParallax) return;
+    const state = this.driveParallax;
+    state.elapsed += delta;
+    const t = Math.min(1, state.elapsed / Math.max(state.duration, 0.001));
+    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    if (state.car) {
+      const enterT = Math.min(1, t / 0.18);
+      const leaveT = Math.max(0, (t - 0.78) / 0.22);
+      const holdX = THREE.MathUtils.lerp(state.carStartX, state.carHoldX, enterT);
+      state.car.position.x = THREE.MathUtils.lerp(holdX, state.carEndX, leaveT);
+      state.car.position.y = state.carBaseY + Math.sin(state.elapsed * 18) * state.carBob;
+    }
+    state.tiledLayers?.forEach((group) => {
+      const scroll = state.scrollWorldUnits * eased * group.depth;
+      group.clones.forEach(({ mesh, baseX }) => {
+        mesh.position.x = baseX - scroll;
+      });
+    });
   },
 
   getActiveNPCs() {
     const roomId = this.hybridRoomData?.id || this.currentRoom?.roomData?.id || null;
-    return this.npcs.filter((npc) => !npc.roomId || npc.roomId === roomId);
+    return this.npcs.filter((npc) => (!npc.roomId || npc.roomId === roomId) && npc.active !== false && npc.root?.visible !== false);
   },
 
   updateHeadLook(delta) {
@@ -1454,6 +2177,26 @@ const RoomManager = {
         movement: config.movement,
       });
       npc.roomId = config.roomId || this.hybridRoomData?.id || this.currentRoom?.roomData?.id || null;
+      npc.actorType = config.type || 'npc';
+      const pendingKey = `${npc.roomId || 'global'}:${config.id}`;
+      const pendingActive = Object.prototype.hasOwnProperty.call(this.pendingActorStates, pendingKey)
+        ? this.pendingActorStates[pendingKey]
+        : null;
+      npc.active = pendingActive ?? (config.active !== false);
+      npc.maxHealth = Number.isFinite(config.maxHealth)
+        ? config.maxHealth
+        : (Number.isFinite(config.health) ? config.health : (config.type === 'zombie' ? 4 : 1));
+      npc.health = Number.isFinite(config.health)
+        ? config.health
+        : npc.maxHealth;
+      npc.damage = Number.isFinite(config.damage)
+        ? config.damage
+        : (config.type === 'zombie' ? 8 : 0);
+      npc.damageCooldownMs = Number.isFinite(config.damageCooldownMs) ? config.damageCooldownMs : 1500;
+      npc.attackRadius = Number.isFinite(config.attackRadius)
+        ? config.attackRadius
+        : (npc.collisionRadius ?? this.npcCollisionRadius) + this.characterCollisionRadius + 0.08;
+      npc.root.visible = npc.active;
       if (config.interaction) {
         npc.root.userData = {
           ...npc.root.userData,
@@ -1476,14 +2219,63 @@ const RoomManager = {
     });
   },
 
+  loadPlacedModel(scene, config) {
+    const textureFolder = config.textureFolder || config.id;
+    const loader = this.createModelLoader(textureFolder);
+    const modelPath = this.getGlobalAssetPath(config.path);
+    const roomId = config.roomId || this.hybridRoomData?.id || this.currentRoom?.roomData?.id || null;
+    const promiseKey = `${roomId || 'global'}:${config.id}`;
+    const promise = new Promise((resolve) => {
+      loader.load(modelPath, (fbx) => {
+      this.prepareModelMaterials(fbx);
+      const object = this.createPlacedModel(fbx, config);
+      object.roomId = roomId;
+      object.visible = config.active !== false;
+      this.placedModels.push(object);
+      if (this.driveParallax
+        && !this.driveParallax.car
+        && this.driveParallax.carModelId === config.id
+        && (!this.driveParallax.roomId || this.driveParallax.roomId === object.roomId)) {
+        this.driveParallax.car = object;
+        object.visible = true;
+        object.position.x = this.driveParallax.carStartX;
+        object.position.y = this.driveParallax.carBaseY;
+      }
+      scene.add(object);
+      resolve(object);
+      }, undefined, () => {
+        console.warn(`Optional placed model missing: ${config.path}`);
+        resolve(null);
+      });
+    });
+    this.placedModelPromises.set(promiseKey, promise);
+    return promise;
+  },
+
+  setActorActive(actorId, active = true) {
+    const roomId = this.hybridRoomData?.id || this.currentRoom?.roomData?.id || null;
+    const pendingKey = `${roomId || 'global'}:${actorId}`;
+    this.pendingActorStates[pendingKey] = active;
+    const actor = this.npcs.find((npc) => npc.id === actorId && (!npc.roomId || npc.roomId === roomId));
+    if (!actor) {
+      console.warn(`Actor not ready in current room, queued state: ${actorId}`);
+      return false;
+    }
+    actor.active = active;
+    actor.root.visible = active;
+    return true;
+  },
+
   createPlacedModel(model, config) {
     const object = new THREE.Group();
     const visual = new THREE.Group();
-    visual.rotation.copy(this.characterVisualRotation);
-    visual.scale.y = this.characterVisualMirrorY ? -1 : 1;
+    visual.rotation.copy(this.arrayToEuler(config.visualRotation, new THREE.Euler(0, 0, 0)));
+    visual.scale.y = config.visualMirrorY ? -1 : 1;
     visual.add(model);
     object.add(visual);
-    object.position.copy(config.position);
+    object.position.copy(config.position?.isVector3
+      ? config.position
+      : this.arrayToVector3(config.position, new THREE.Vector3()));
     object.rotation.y = config.rotationY ?? 0;
     object.updateMatrixWorld(true);
 
@@ -1498,9 +2290,13 @@ const RoomManager = {
     const center = new THREE.Vector3();
     normalizedBox.getCenter(center);
     visual.position.x -= center.x - object.position.x;
-    visual.position.y -= normalizedBox.min.y;
+    visual.position.y -= normalizedBox.min.y - object.position.y;
     visual.position.z -= center.z - object.position.z;
-    object.userData = { modelId: config.id };
+    object.userData = {
+      modelId: config.id,
+      collisionRadius: Number.isFinite(config.collisionRadius) ? config.collisionRadius : null,
+      collisionOffset: this.arrayToVector3(config.collisionOffset, new THREE.Vector3(0, 0, 0)),
+    };
     return object;
   },
 
@@ -1709,14 +2505,14 @@ const RoomManager = {
     };
   },
 
-  findNearestWalkableRoomPoint(point) {
+  findNearestWalkableRoomPoint(point, maxRadius = null) {
     if (!this.hybridWalkMask) return point;
     if (this.isHybridPointWalkable(point)) return point;
 
     const { canvas } = this.hybridWalkMask;
     const step = 12;
-    const maxRadius = Math.max(canvas.width, canvas.height);
-    for (let radius = step; radius <= maxRadius; radius += step) {
+    const radiusLimit = maxRadius || Math.max(canvas.width, canvas.height);
+    for (let radius = step; radius <= radiusLimit; radius += step) {
       let best = null;
       let bestDistance = Infinity;
       for (let y = -radius; y <= radius; y += step) {
@@ -1734,6 +2530,205 @@ const RoomManager = {
       if (best) return best;
     }
     return null;
+  },
+
+  buildNavigationGrid(cellSize = 12) {
+    if (!this.hybridWalkMask || !this.hybridRoomData?.id) return null;
+    const roomId = this.hybridRoomData.id;
+    const existing = this.navGrids[roomId];
+    if (existing && existing.cellSize === cellSize) return existing;
+
+    const { canvas } = this.hybridWalkMask;
+    const cols = Math.ceil(canvas.width / cellSize);
+    const rows = Math.ceil(canvas.height / cellSize);
+    const walkable = new Uint8Array(cols * rows);
+    let walkableCount = 0;
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const point = {
+          x: Math.min(canvas.width - 1, Math.round((col + 0.5) * cellSize)),
+          y: Math.min(canvas.height - 1, Math.round((row + 0.5) * cellSize)),
+        };
+        const ok = this.isHybridPointWalkable(point);
+        walkable[row * cols + col] = ok ? 1 : 0;
+        if (ok) walkableCount += 1;
+      }
+    }
+
+    const grid = { roomId, cellSize, width: canvas.width, height: canvas.height, cols, rows, walkable, walkableCount };
+    this.navGrids[roomId] = grid;
+    return grid;
+  },
+
+  getNavNodeFromRoomPoint(point, grid = this.buildNavigationGrid()) {
+    if (!point || !grid) return null;
+    const col = THREE.MathUtils.clamp(Math.floor(point.x / grid.cellSize), 0, grid.cols - 1);
+    const row = THREE.MathUtils.clamp(Math.floor(point.y / grid.cellSize), 0, grid.rows - 1);
+    return { col, row, index: row * grid.cols + col };
+  },
+
+  getRoomPointFromNavNode(node, grid = this.buildNavigationGrid()) {
+    if (!node || !grid) return null;
+    return {
+      x: Math.min(grid.width - 1, (node.col + 0.5) * grid.cellSize),
+      y: Math.min(grid.height - 1, (node.row + 0.5) * grid.cellSize),
+    };
+  },
+
+  findNearestWalkableNavNode(point, grid = this.buildNavigationGrid(), maxRadiusCells = 80) {
+    const start = this.getNavNodeFromRoomPoint(point, grid);
+    if (!start) return null;
+    if (grid.walkable[start.index]) return start;
+
+    let best = null;
+    let bestDistance = Infinity;
+    for (let radius = 1; radius <= maxRadiusCells; radius += 1) {
+      for (let row = start.row - radius; row <= start.row + radius; row += 1) {
+        for (let col = start.col - radius; col <= start.col + radius; col += 1) {
+          if (row < 0 || row >= grid.rows || col < 0 || col >= grid.cols) continue;
+          if (Math.max(Math.abs(col - start.col), Math.abs(row - start.row)) !== radius) continue;
+          const index = row * grid.cols + col;
+          if (!grid.walkable[index]) continue;
+          const distance = Math.hypot((col - start.col) * grid.cellSize, (row - start.row) * grid.cellSize);
+          if (distance < bestDistance) {
+            best = { col, row, index };
+            bestDistance = distance;
+          }
+        }
+      }
+      if (best) return best;
+    }
+    return null;
+  },
+
+  findPathRoomPixels(startPoint, goalPoint) {
+    const grid = this.buildNavigationGrid();
+    if (!grid || !startPoint || !goalPoint) return null;
+    const start = this.findNearestWalkableNavNode(startPoint, grid);
+    const goal = this.findNearestWalkableNavNode(goalPoint, grid);
+    if (!start || !goal) return null;
+    if (start.index === goal.index) return [this.getRoomPointFromNavNode(goal, grid)];
+
+    const total = grid.cols * grid.rows;
+    const cameFrom = new Int32Array(total);
+    const gScore = new Float32Array(total);
+    const fScore = new Float32Array(total);
+    const inOpen = new Uint8Array(total);
+    const closed = new Uint8Array(total);
+    cameFrom.fill(-1);
+    gScore.fill(Infinity);
+    fScore.fill(Infinity);
+
+    const heuristic = (index) => {
+      const col = index % grid.cols;
+      const row = Math.floor(index / grid.cols);
+      return Math.hypot(col - goal.col, row - goal.row);
+    };
+    const open = [start.index];
+    inOpen[start.index] = 1;
+    gScore[start.index] = 0;
+    fScore[start.index] = heuristic(start.index);
+    const dirs = [
+      [0, -1, 1], [1, 0, 1], [0, 1, 1], [-1, 0, 1],
+      [1, -1, Math.SQRT2], [1, 1, Math.SQRT2], [-1, 1, Math.SQRT2], [-1, -1, Math.SQRT2],
+    ];
+
+    while (open.length) {
+      let bestOpen = 0;
+      for (let i = 1; i < open.length; i += 1) {
+        if (fScore[open[i]] < fScore[open[bestOpen]]) bestOpen = i;
+      }
+      const current = open.splice(bestOpen, 1)[0];
+      inOpen[current] = 0;
+      if (current === goal.index) {
+        const path = [];
+        let node = current;
+        while (node !== -1) {
+          path.push(this.getRoomPointFromNavNode({ col: node % grid.cols, row: Math.floor(node / grid.cols), index: node }, grid));
+          node = cameFrom[node];
+        }
+        return path.reverse();
+      }
+      closed[current] = 1;
+      const currentCol = current % grid.cols;
+      const currentRow = Math.floor(current / grid.cols);
+      for (const [dx, dy, cost] of dirs) {
+        const col = currentCol + dx;
+        const row = currentRow + dy;
+        if (col < 0 || row < 0 || col >= grid.cols || row >= grid.rows) continue;
+        const next = row * grid.cols + col;
+        if (closed[next] || !grid.walkable[next]) continue;
+        if (dx !== 0 && dy !== 0) {
+          const sideA = currentRow * grid.cols + col;
+          const sideB = row * grid.cols + currentCol;
+          if (!grid.walkable[sideA] || !grid.walkable[sideB]) continue;
+        }
+        const tentative = gScore[current] + cost;
+        if (tentative >= gScore[next]) continue;
+        cameFrom[next] = current;
+        gScore[next] = tentative;
+        fScore[next] = tentative + heuristic(next);
+        if (!inOpen[next]) {
+          open.push(next);
+          inOpen[next] = 1;
+        }
+      }
+    }
+    return null;
+  },
+
+  hasLineOfSightWalkable(a, b) {
+    if (!a || !b) return false;
+    const distance = Math.hypot(b.x - a.x, b.y - a.y);
+    const step = Math.max(4, (this.buildNavigationGrid()?.cellSize || 12) * 0.5);
+    const steps = Math.max(1, Math.ceil(distance / step));
+    for (let i = 0; i <= steps; i += 1) {
+      const t = i / steps;
+      const point = { x: THREE.MathUtils.lerp(a.x, b.x, t), y: THREE.MathUtils.lerp(a.y, b.y, t) };
+      if (!this.isHybridPointWalkable(point)) return false;
+    }
+    return true;
+  },
+
+  simplifyPath(path = []) {
+    if (!path.length) return [];
+    const simplified = [path[0]];
+    let anchorIndex = 0;
+    for (let index = 2; index < path.length; index += 1) {
+      if (!this.hasLineOfSightWalkable(path[anchorIndex], path[index])) {
+        simplified.push(path[index - 1]);
+        anchorIndex = index - 1;
+      }
+    }
+    if (path.length > 1) simplified.push(path[path.length - 1]);
+    return simplified;
+  },
+
+  getWalkPathToRoomPoint(goalPoint, { maxRadius = null } = {}) {
+    if (!this.character || !goalPoint) return null;
+    const startPoint = this.getRoomPixelFromWorldPosition(this.character.position);
+    const destination = this.isHybridPointWalkable(goalPoint)
+      ? goalPoint
+      : this.findNearestWalkableRoomPoint(goalPoint, maxRadius);
+    if (!destination) return null;
+    const rawPath = this.findPathRoomPixels(startPoint, destination);
+    if (!rawPath?.length) return null;
+    const path = this.simplifyPath(rawPath);
+    const worldPath = path
+      .map((point) => this.getWorldPositionFromRoomPixel(point))
+      .filter(Boolean);
+    this.currentPathDebug = { roomId: this.hybridRoomData?.id, startPoint, goalPoint, destination, rawPath, path, worldPath };
+    return worldPath;
+  },
+
+  getWalkPathFromPointer(event) {
+    if (!this.currentRoom) return null;
+    if (!this.hybridRoomData?.hybrid3d) {
+      const target = this.getWalkTargetFromPointer(event);
+      return target ? [target] : null;
+    }
+    return this.getWalkPathToRoomPoint(this.getRoomPixelFromPointer(event));
   },
 
   getFacingRotation(facing) {
@@ -1780,6 +2775,7 @@ const RoomManager = {
       this.placeCharacterAtRoomStart(this.character, spawnId);
     }
     this.updateStatus();
+    InteractionEngine.runRoomEnter(this.currentRoom.roomData || this.hybridRoomData);
   },
 
   placeCharacterForCurrentRoom(spawnId = null) {
@@ -1797,22 +2793,22 @@ const RoomManager = {
     room.camera.updateProjectionMatrix();
   },
 
-  handleClick(event) {
+  handleClick(event, queueArrival = null) {
     if (!this.currentRoom) return false;
     if (NarratorVoice.isBusy()) return true;
-    const interest = this.getInterestFromPointer(event);
-    if (interest) {
-      this.processInterest(interest);
-      return true;
-    }
     const exit = this.getExitFromPointer(event);
     if (exit) {
-      this.processInterest(exit);
+      this.queueInteractionOrRun(exit, queueArrival);
       return true;
     }
     const hotspot = this.getHotspotFromPointer(event);
     if (hotspot) {
-      this.processInterest(hotspot);
+      this.queueInteractionOrRun(hotspot, queueArrival);
+      return true;
+    }
+    const interest = this.getInterestFromPointer(event);
+    if (interest) {
+      this.queueInteractionOrRun(interest, queueArrival);
       return true;
     }
 
@@ -1833,8 +2829,190 @@ const RoomManager = {
     return false;
   },
 
+  handleGamepadActivate(queueArrival = null) {
+    if (!this.currentRoom || !this.character) return false;
+    if (NarratorVoice.isBusy()) return true;
+    const interest = this.getGamepadFocusedInteraction();
+    if (!interest) {
+      NarratorVoice.setAmbientText('Romeo reaches for nothing useful.');
+      return false;
+    }
+    this.queueInteractionOrRun(interest, queueArrival);
+    return true;
+  },
+
+  getGamepadFocusedInteraction() {
+    if (!this.character) return null;
+    const characterPoint = this.getRoomPixelFromWorldPosition(this.character.position);
+    if (!characterPoint) return null;
+
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.character.quaternion);
+    const aheadPosition = this.character.position.clone().addScaledVector(forward, 0.9);
+    aheadPosition.y = this.getWalkSurfaceYAt(aheadPosition);
+    const aheadPoint = this.getRoomPixelFromWorldPosition(aheadPosition) || characterPoint;
+    const midpoint = {
+      x: (characterPoint.x + aheadPoint.x) * 0.5,
+      y: (characterPoint.y + aheadPoint.y) * 0.5,
+    };
+
+    const directPoints = [aheadPoint, midpoint, characterPoint];
+    for (const point of directPoints) {
+      const direct = this.getExitAtRoomPoint(point)
+        || this.getHotspotAtRoomPoint(point)
+        || this.getInterestNearRoomPoint(point, 18);
+      if (direct) return direct;
+    }
+
+    return this.getNearestRectInteraction(aheadPoint, characterPoint, 130);
+  },
+
+  getInterestNearRoomPoint(point, radius = 18) {
+    const offsets = [
+      [0, 0],
+      [radius, 0],
+      [-radius, 0],
+      [0, radius],
+      [0, -radius],
+      [radius * 0.7, radius * 0.7],
+      [-radius * 0.7, radius * 0.7],
+      [radius * 0.7, -radius * 0.7],
+      [-radius * 0.7, -radius * 0.7],
+    ];
+    for (const [x, y] of offsets) {
+      const interest = this.getInterestAtRoomPoint({ x: point.x + x, y: point.y + y });
+      if (interest) return interest;
+    }
+    return null;
+  },
+
+  getNearestRectInteraction(focusPoint, fallbackPoint, maxDistance = 130) {
+    const candidates = [
+      ...(this.hybridRoomData?.exits || []).map((entry) => ({ type: 'exit', entry })),
+      ...(this.hybridRoomData?.hotspots || []).map((entry) => ({ type: 'hotspot', entry })),
+    ];
+    let best = null;
+    for (const candidate of candidates) {
+      const rect = candidate.entry.rect;
+      if (!Array.isArray(rect) || rect.length < 4) continue;
+      const distance = Math.min(
+        this.getDistanceToRoomRect(focusPoint, rect),
+        this.getDistanceToRoomRect(fallbackPoint, rect)
+      );
+      if (distance > maxDistance) continue;
+      if (!best || distance < best.distance) {
+        best = { ...candidate, distance };
+      }
+    }
+    if (!best) return null;
+    const rect = best.entry.rect;
+    const point = {
+      x: THREE.MathUtils.clamp(focusPoint.x, rect[0], rect[0] + rect[2]),
+      y: THREE.MathUtils.clamp(focusPoint.y, rect[1], rect[1] + rect[3]),
+    };
+    return best.type === 'exit'
+      ? this.getExitAtRoomPoint(point)
+      : this.getHotspotAtRoomPoint(point);
+  },
+
+  getDistanceToRoomRect(point, rect) {
+    const [x, y, width, height] = rect;
+    const clampedX = THREE.MathUtils.clamp(point.x, x, x + width);
+    const clampedY = THREE.MathUtils.clamp(point.y, y, y + height);
+    return Math.hypot(point.x - clampedX, point.y - clampedY);
+  },
+
+  queueInteractionOrRun(interest, queueArrival = null) {
+    if (!this.hybridRoomData?.hybrid3d || !queueArrival || !this.character) {
+      this.processInterest(interest);
+      return;
+    }
+    const approach = this.getInteractionApproachPath(interest);
+    if (approach?.alreadyInReach) {
+      this.processInterest(interest);
+      return;
+    }
+    const path = approach?.path;
+    if (!path?.length) {
+      NarratorVoice.setAmbientText('Romeo studies the route. No.');
+      return;
+    }
+    queueArrival(path, () => this.processInterest(interest));
+  },
+
+  getInteractionApproachPath(interest) {
+    const anchor = this.getInteractionAnchorPoint(interest);
+    const characterPoint = this.getRoomPixelFromWorldPosition(this.character?.position);
+    if (!anchor || !characterPoint) return null;
+
+    const rect = interest?.rect || interest?.exit?.rect || interest?.hotspot?.rect;
+    const reach = Number.isFinite(interest?.interactionReach)
+      ? interest.interactionReach
+      : (Array.isArray(rect) ? 185 : 230);
+    if (Math.hypot(anchor.x - characterPoint.x, anchor.y - characterPoint.y) <= reach) {
+      return { alreadyInReach: true, anchor };
+    }
+
+    const candidates = this.getInteractionApproachCandidates(interest, anchor);
+    let best = null;
+    for (const candidate of candidates) {
+      const maxRadius = Number.isFinite(interest?.approachRadius) ? interest.approachRadius : 340;
+      const path = this.getWalkPathToRoomPoint(candidate, { maxRadius });
+      if (!path?.length) continue;
+      const finalPoint = this.getRoomPixelFromWorldPosition(path[path.length - 1]);
+      const interactionDistance = finalPoint ? Math.hypot(finalPoint.x - anchor.x, finalPoint.y - anchor.y) : Infinity;
+      if (interactionDistance > Math.max(reach * 1.65, maxRadius)) continue;
+      const length = this.getWorldPathLength(path);
+      if (!best || length < best.length) {
+        best = { path, length, anchor, candidate, interactionDistance };
+      }
+    }
+    return best;
+  },
+
+  getInteractionApproachCandidates(interest, anchor) {
+    const rect = interest?.rect || interest?.exit?.rect || interest?.hotspot?.rect;
+    if (!Array.isArray(rect) || rect.length < 4) {
+      return [anchor];
+    }
+
+    const [x, y, width, height] = rect;
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    const bottomY = y + height - 10;
+    const belowY = y + height + 36;
+    const sideInset = Math.min(width * 0.25, 55);
+    return [
+      anchor,
+      { x: centerX, y: bottomY },
+      { x: centerX, y: belowY },
+      { x: x + sideInset, y: bottomY },
+      { x: x + width - sideInset, y: bottomY },
+      { x: x - 36, y: centerY },
+      { x: x + width + 36, y: centerY },
+      { x: centerX, y: centerY },
+    ];
+  },
+
+  getWorldPathLength(path = []) {
+    let length = 0;
+    let previous = this.character?.position || null;
+    for (const point of path) {
+      if (previous) length += Math.hypot(point.x - previous.x, point.z - previous.z);
+      previous = point;
+    }
+    return length;
+  },
+
+  getInteractionAnchorPoint(interest) {
+    const rect = interest?.rect || interest?.exit?.rect || interest?.hotspot?.rect;
+    if (Array.isArray(rect) && rect.length >= 4) {
+      return { x: rect[0] + rect[2] / 2, y: rect[1] + rect[3] - 12 };
+    }
+    return interest?.point || this.getRoomPixelFromWorldPosition(this.character?.position);
+  },
+
   handlePointerHover(event) {
-    const interest = this.getInterestFromPointer(event) || this.getExitFromPointer(event) || this.getHotspotFromPointer(event);
+    const interest = this.getExitFromPointer(event) || this.getHotspotFromPointer(event) || this.getInterestFromPointer(event);
     const id = interest?.id || null;
     if (id === this.hoverInterestId) {
       if (interest?.label && !NarratorVoice.isBusy() && NarratorVoice.textElement?.textContent !== `${interest.label}.`) {
@@ -1878,12 +3056,14 @@ const RoomManager = {
     });
     if (!exit) return null;
     const doorInterest = this.hybridRoomData?.interests?.['#ff0000'] || {};
+    const action = exit.action || exit.interaction || doorInterest.action || exit;
     return {
       ...doorInterest,
-      id: doorInterest.id || exit.id,
-      label: doorInterest.label || 'Door',
+      ...exit,
+      id: exit.id || doorInterest.id,
+      label: exit.label || doorInterest.label || 'Door',
       cursor: doorInterest.cursor || 'exit',
-      action: doorInterest.action || 'openDoor',
+      action,
       targetRoom: exit.targetRoom,
       targetSpawn: exit.targetSpawn,
       point,
@@ -1906,10 +3086,12 @@ const RoomManager = {
     });
     if (!hotspot) return null;
     return {
+      ...hotspot,
+      ...(hotspot.interaction && typeof hotspot.interaction === 'object' ? hotspot.interaction : {}),
       id: hotspot.id,
       label: hotspot.label,
       cursor: hotspot.cursor,
-      action: hotspot.action || hotspot.interaction?.action,
+      action: hotspot.action || hotspot.interaction?.action || hotspot.interaction,
       targetRoom: hotspot.targetRoom || hotspot.interaction?.targetRoom,
       targetSpawn: hotspot.targetSpawn || hotspot.interaction?.targetSpawn,
       voice: hotspot.voice || hotspot.interaction?.voice,
@@ -1933,6 +3115,10 @@ const RoomManager = {
   processInterest(interest) {
     if (interest.action) {
       InteractionEngine.process(interest.action, interest);
+      return;
+    }
+    if (InteractionEngine.hasActionFields(interest)) {
+      InteractionEngine.runAction(interest, interest);
       return;
     }
     this.playInteractionAnimation(interest.anim ?? null);
@@ -2244,13 +3430,14 @@ const RoomManager = {
 
   isPositionClearOfNPCs(position, fromPosition = null) {
     const activeNPCs = this.getActiveNPCs();
-    if (!position || !activeNPCs.length) return true;
+    const propBlockers = this.getActivePropBlockers();
+    if (!position || (!activeNPCs.length && !propBlockers.length)) return true;
     const playerRadius = this.characterCollisionRadius;
 
-    return activeNPCs.every((npc) => {
-      const npcPosition = npc.root?.position;
+    return [...activeNPCs, ...propBlockers].every((blocker) => {
+      const npcPosition = blocker.root?.position || blocker.position;
       if (!npcPosition) return true;
-      const minDistance = playerRadius + (npc.collisionRadius ?? this.npcCollisionRadius);
+      const minDistance = playerRadius + (blocker.collisionRadius ?? this.npcCollisionRadius);
       const candidateDistance = Math.hypot(position.x - npcPosition.x, position.z - npcPosition.z);
       if (candidateDistance >= minDistance) return true;
 
@@ -2260,14 +3447,35 @@ const RoomManager = {
     });
   },
 
+  getActivePropBlockers(roomId = this.hybridRoomData?.id || this.currentRoom?.roomData?.id || null) {
+    return this.placedModels
+      .filter((object) => object.visible !== false
+        && (!roomId || object.roomId === roomId)
+        && Number.isFinite(object.userData?.collisionRadius))
+      .map((object) => ({
+        id: object.userData.modelId,
+        position: object.userData.collisionOffset
+          ? object.position.clone().add(object.userData.collisionOffset)
+          : object.position,
+        collisionRadius: object.userData.collisionRadius,
+        movable: false,
+      }));
+  },
+
   resolveActorOverlaps() {
     const activeNPCs = this.getActiveNPCs();
-    if (!activeNPCs.length) return;
+    const propBlockers = this.getActivePropBlockers();
+    if (!activeNPCs.length && !propBlockers.length) return;
     const actors = [
       ...activeNPCs.map((npc) => ({
         position: npc.root.position,
         radius: npc.collisionRadius ?? this.npcCollisionRadius,
         movable: true,
+      })),
+      ...propBlockers.map((prop) => ({
+        position: prop.position,
+        radius: prop.collisionRadius,
+        movable: false,
       })),
       ...(this.character ? [{
         position: this.character.position,
@@ -2585,6 +3793,14 @@ const RoomManager = {
 };
 
 const InteractionEngine = {
+  actionFields: [
+    'text', 'repeatText', 'lockedText', 'afterText', 'giveItem', 'removeItem',
+    'requiresItem', 'requiresAnyItem', 'requiresMissingItem', 'setFlag', 'setFlags',
+    'requiresFlag', 'requiresFlags', 'requiresMissingFlag', 'requiresMissingFlags',
+    'once', 'targetRoom', 'targetSpawn', 'raiseNoise', 'setThreat', 'spawnZombie',
+    'despawnZombie', 'triggerEncounter', 'choices', 'driveSequence',
+  ],
+
   listeners: {
     talkTo: (context = {}) => {
       const dialog = context.dialog || {
@@ -2654,14 +3870,270 @@ const InteractionEngine = {
         },
       ], { voice });
     },
+    pickupCrowbar: () => InteractionEngine.pickupOnce('crowbar', 'picked_crowbar', 'Romeo takes the crowbar. Heavy, ugly, persuasive.'),
+    pickupScrewdriver: () => InteractionEngine.pickupOnce('screwdriver', 'picked_screwdriver', 'Romeo pockets the screwdriver. Flathead. Old handle. Useful enough.'),
+    pickupFuse: () => InteractionEngine.pickupOnce('fuse', 'picked_fuse', 'Romeo takes the fuse. Small enough to lose. Important enough not to.'),
+    pickupGasolineCan: () => {
+      if (GameState.flags.carFueled) {
+        InteractionEngine.say('The empty can has done its part.');
+        return;
+      }
+      if (!GameState.hasItem('gasoline_can')) {
+        const added = GameState.addItem('gasoline_can');
+        if (!added && !GameState.hasItem('gasoline_can')) return;
+      }
+      GameState.startCarry('gasoline_can');
+      if (!GameState.hasFlag('carryHintShown')) {
+        GameState.setFlag('carryHintShown');
+        InteractionEngine.say('Romeo lifts the gasoline can with both hands. It pulls his shoulders down.');
+        return;
+      }
+      InteractionEngine.say('Romeo carries the gasoline can. Both hands busy.');
+    },
+    inspectCar: () => {
+      GameState.setFlag('carInspected');
+      if (!GameState.flags.carHoodOpen) {
+        InteractionEngine.say('The car will not give him anything. The hood is bent shut, the latch buried in warped metal.');
+        return;
+      }
+      if (!GameState.flags.carPanelOpen) {
+        InteractionEngine.say('Under the hood, a small panel sits tight under four old screws.');
+        return;
+      }
+      if (!GameState.flags.carFuseInstalled) {
+        InteractionEngine.say('Inside the panel, one slot is empty. Of course it is.');
+        return;
+      }
+      if (!GameState.flags.carFueled) {
+        InteractionEngine.say('The dash gives a weak click. The tank is dry.');
+        return;
+      }
+      if (!GameState.flags.carFixed) {
+        GameState.checkCarFixed();
+      }
+      if (GameState.flags.carFixed) {
+        InteractionEngine.say('The car is ready, if ready still means anything.');
+        return;
+      }
+      InteractionEngine.say('The car waits under dust and bad promises.');
+    },
+    useCrowbarOnCar: () => {
+      if (GameState.flags.carHoodOpen) {
+        InteractionEngine.say('The hood is already open just enough to work.');
+        return;
+      }
+      if (!GameState.hasItem('crowbar')) {
+        InteractionEngine.say("The hood is bent shut. Fingers won't do it.");
+        return;
+      }
+      GameState.setFlag('carHoodOpen');
+      InteractionEngine.say('Metal complains. The hood opens just enough to work.');
+    },
+    useScrewdriverOnPanel: () => {
+      if (!GameState.flags.carHoodOpen) {
+        InteractionEngine.say("Can't reach the panel with the hood shut.");
+        return;
+      }
+      if (GameState.flags.carPanelOpen) {
+        InteractionEngine.say('The panel cover is already loose.');
+        return;
+      }
+      if (!GameState.hasItem('screwdriver')) {
+        InteractionEngine.say('The cover is screwed down.');
+        return;
+      }
+      GameState.setFlag('carPanelOpen');
+      InteractionEngine.say('Four screws, one shaking hand. The panel comes loose.');
+    },
+    interactCarFusePanel: () => {
+      if (!GameState.flags.carPanelOpen) {
+        InteractionEngine.listeners.useScrewdriverOnPanel();
+        return;
+      }
+      InteractionEngine.listeners.useFuseOnFuseBox();
+    },
+    useFuseOnFuseBox: () => {
+      if (!GameState.flags.carPanelOpen) {
+        InteractionEngine.say('The fuse box is still covered.');
+        return;
+      }
+      if (GameState.flags.carFuseInstalled) {
+        InteractionEngine.say('The fuse is already seated.');
+        return;
+      }
+      if (!GameState.hasItem('fuse')) {
+        InteractionEngine.say('One empty slot. Of course.');
+        return;
+      }
+      GameState.removeItem('fuse');
+      GameState.setFlag('carFuseInstalled');
+      const completed = GameState.checkCarFixed();
+      InteractionEngine.say(completed
+        ? 'The fuse clicks into place. Something under the dash remembers electricity. The engine coughs once. Then again. Alive, barely.'
+        : 'The fuse clicks into place. Something under the dash remembers electricity.');
+    },
+    useGasolineOnCar: () => {
+      if (GameState.flags.carFueled) {
+        InteractionEngine.say('The tank has enough. For now.');
+        return;
+      }
+      if (GameState.player.carryingItem?.id !== 'gasoline_can') {
+        InteractionEngine.say('The tank is empty. Whatever fuel was here is gone.');
+        return;
+      }
+      GameState.setFlag('carFueled');
+      GameState.stopCarry();
+      GameState.removeItem('gasoline_can');
+      const completed = GameState.checkCarFixed();
+      InteractionEngine.say(completed
+        ? 'The car drinks it like a dying man at a fountain. The engine coughs once. Then again. Alive, barely.'
+        : 'The car drinks it like a dying man at a fountain.');
+    },
+    tryStartCar: () => {
+      if (GameState.checkCarFixed() || GameState.flags.carFixed) {
+        InteractionEngine.say('The engine coughs once. Then again. Alive, barely.');
+        return;
+      }
+      InteractionEngine.listeners.inspectCar();
+    },
+    blockedAimWhileCarrying: () => {
+      InteractionEngine.say('Not with both hands full.');
+    },
+  },
+
+  pickupOnce(itemId, flagId, text) {
+    if (GameState.hasFlag(flagId) || GameState.hasItem(itemId)) {
+      this.say('Nothing useful left there.');
+      return;
+    }
+    if (GameState.addItem(itemId)) {
+      GameState.setFlag(flagId);
+      this.say(text);
+    }
+  },
+
+  hasActionFields(action) {
+    return Boolean(action && typeof action === 'object' && this.actionFields.some((field) => Object.prototype.hasOwnProperty.call(action, field)));
   },
 
   process(interactionId, context = {}) {
     if (Object.prototype.hasOwnProperty.call(context, 'anim')) {
       RoomManager.playInteractionAnimation(context.anim);
     }
+    if (interactionId && typeof interactionId === 'object') {
+      this.runAction(interactionId, context);
+      return;
+    }
     const listener = this.listeners[interactionId];
-    if (listener) listener(context);
+    if (listener) {
+      listener(context);
+      return;
+    }
+    if (this.hasActionFields(context)) {
+      this.runAction(context, context);
+    }
+  },
+
+  runRoomEnter(roomData = null) {
+    const scripts = Array.isArray(roomData?.onEnter) ? roomData.onEnter : [];
+    for (const script of scripts) {
+      if (script.once && GameState.hasFlag(`once.${script.once}`)) continue;
+      if (!this.requirementsMet(script, { silent: true })) continue;
+      this.runAction(script, { roomData, source: 'onEnter', ambient: true });
+      break;
+    }
+  },
+
+  requirementsMet(action, { silent = false } = {}) {
+    const hasAll = (ids = []) => ids.every((id) => GameState.hasFlag(id));
+    const missingAll = (ids = []) => ids.every((id) => !GameState.hasFlag(id));
+    const blocked = [];
+    if (action.requiresItem && !GameState.hasItem(action.requiresItem)) blocked.push('item');
+    if (Array.isArray(action.requiresAnyItem) && !action.requiresAnyItem.some((id) => GameState.hasItem(id))) blocked.push('any item');
+    if (action.requiresMissingItem && GameState.hasItem(action.requiresMissingItem)) blocked.push('missing item');
+    if (action.requiresFlag && !GameState.hasFlag(action.requiresFlag)) blocked.push('flag');
+    if (Array.isArray(action.requiresFlags) && !hasAll(action.requiresFlags)) blocked.push('flags');
+    if (action.requiresMissingFlag && GameState.hasFlag(action.requiresMissingFlag)) blocked.push('missing flag');
+    if (Array.isArray(action.requiresMissingFlags) && !missingAll(action.requiresMissingFlags)) blocked.push('missing flags');
+    if (!blocked.length) return true;
+    if (!silent) {
+      this.say(action.lockedText || 'It will not open. Not yet.', action);
+    }
+    return false;
+  },
+
+  runAction(action, context = {}) {
+    if (!action || typeof action !== 'object') return false;
+    if (Object.prototype.hasOwnProperty.call(context, 'anim')) {
+      RoomManager.playInteractionAnimation(context.anim);
+    }
+    if (!this.requirementsMet(action)) return false;
+
+    const onceFlag = action.once ? `once.${action.once}` : null;
+    if (onceFlag && GameState.hasFlag(onceFlag)) {
+      this.say(action.repeatText || 'Nothing else here.', action);
+      return false;
+    }
+
+    if (Array.isArray(action.choices) && action.choices.length) {
+      const choices = action.choices.map((choice) => ({
+        label: choice.label || 'Continue',
+        action: () => this.runAction(choice.action || choice, context),
+      }));
+      this.say(action.text || context.text || 'Romeo waits.', action, choices);
+      return true;
+    }
+
+    if (action.once) GameState.setFlag(onceFlag, true);
+    if (action.setFlag) GameState.setFlag(action.setFlag);
+    if (Array.isArray(action.setFlags)) action.setFlags.forEach((flagId) => GameState.setFlag(flagId));
+    if (action.removeItem) GameState.removeItem(action.removeItem);
+    if (action.giveItem) GameState.addItem(action.giveItem);
+    if (Number.isFinite(action.raiseNoise)) {
+      GameState.player.noiseLevel += action.raiseNoise;
+      ThreatManager.raiseNoise(action.raiseNoise);
+    }
+    if (action.setThreat) ThreatManager.alertRoom(GameState.currentRoom, action.setThreat);
+    if (action.spawnZombie) RoomManager.setActorActive(action.spawnZombie, true);
+    if (action.despawnZombie) RoomManager.setActorActive(action.despawnZombie, false);
+    if (action.triggerEncounter) {
+      GameState.setFlag(`encounter.${action.triggerEncounter}`);
+      ThreatManager.alertRoom(GameState.currentRoom, 'danger');
+    }
+
+    if (action.driveSequence) {
+      RoomManager.playDriveSequence(action.driveSequence, action);
+      return true;
+    }
+
+    const targetRoom = action.targetRoom || context.targetRoom || context.exit?.targetRoom;
+    const targetSpawn = action.targetSpawn || context.targetSpawn || context.exit?.targetSpawn || null;
+    if (targetRoom) {
+      const sourceRoom = RoomManager.hybridRoomData?.id;
+      const moved = GameState.setRoom(targetRoom, targetSpawn);
+      if (!moved) {
+        this.say(`The way to ${targetRoom} is not ready yet.`, action);
+        return false;
+      }
+      if (action.afterText) this.say(action.afterText, { ...action, voiceRoomId: sourceRoom }, null, { ambient: true });
+      else if (action.text) this.say(action.text, { ...action, voiceRoomId: sourceRoom }, null, { ambient: true });
+      return true;
+    }
+
+    this.say(action.text || context.text || 'Nothing else here.', action, null, { ambient: context.ambient });
+    return true;
+  },
+
+  say(text, action = {}, choices = null, options = {}) {
+    if (options.ambient) {
+      NarratorVoice.setAmbientText(text);
+      return;
+    }
+    NarratorVoice.speak(
+      text,
+      choices || [{ label: 'Continue', action: () => { } }],
+      { voice: action.voice, voiceRoomId: action.voiceRoomId }
+    );
   },
 };
 
@@ -2680,7 +4152,7 @@ const InventorySystem = {
       slot.className = 'inventory-slot';
       const item = GameState.player.inventory[index];
       if (item) {
-        slot.textContent = item.name;
+        slot.textContent = item.icon ? `${item.icon} ${item.name}` : item.name;
         slot.title = item.description;
       } else {
         slot.textContent = '';
@@ -2739,6 +4211,12 @@ const NarratorVoice = {
 
   setInstantText(message) {
     if (this.isBusy()) return;
+    this.clear({ stopVoice: false });
+    if (this.textElement) this.textElement.textContent = message;
+  },
+
+  setAmbientText(message) {
+    if (!message) return;
     this.clear({ stopVoice: false });
     if (this.textElement) this.textElement.textContent = message;
   },
@@ -2930,6 +4408,7 @@ const AudioManager = {
   musicSrc: './rooms/Cassette_in_Room9.mp3',
   volume: 0.42,
   lastError: null,
+  hasUserGesture: false,
 
   init() {
     this.audio = new Audio();
@@ -2940,20 +4419,21 @@ const AudioManager = {
       this.lastError = this.audio?.error?.message || `Media error ${this.audio?.error?.code || 'unknown'}`;
       console.warn('Music failed to load.', this.lastError);
     };
-    this.audio.oncanplay = () => {
-      if (this.pendingPlay || this.audio.paused) this.play();
-    };
     window.DEBUG_AUDIO = () => this.getDebugState();
-    window.addEventListener('pointerdown', () => this.unlockMusic(), { passive: true });
-    window.addEventListener('keydown', () => this.unlockMusic(), { passive: true });
-    this.playMusic();
+    const unlockOptions = { passive: true, capture: true };
+    window.addEventListener('pointerdown', () => this.unlockMusic(), unlockOptions);
+    window.addEventListener('click', () => this.unlockMusic(), unlockOptions);
+    window.addEventListener('touchstart', () => this.unlockMusic(), unlockOptions);
+    window.addEventListener('keydown', () => this.unlockMusic(), unlockOptions);
+    window.addEventListener('gamepadconnected', () => this.unlockMusic(), unlockOptions);
+    this.prepareMusic();
   },
 
   playForRoom(room) {
-    this.playMusic();
+    if (this.hasUserGesture) this.playMusic();
   },
 
-  playMusic() {
+  prepareMusic() {
     if (!this.audio || !this.musicSrc) return;
     const src = this.musicSrc;
     this.audio.loop = true;
@@ -2962,7 +4442,12 @@ const AudioManager = {
       this.currentSrc = src;
       this.audio.src = src;
       this.audio.currentTime = 0;
+      this.audio.load();
     }
+  },
+
+  playMusic() {
+    this.prepareMusic();
     this.play();
   },
 
@@ -2982,6 +4467,7 @@ const AudioManager = {
   },
 
   unlockMusic() {
+    this.hasUserGesture = true;
     this.playMusic();
   },
 
@@ -3003,6 +4489,7 @@ const AudioManager = {
       src: this.currentSrc,
       paused: this.audio?.paused ?? true,
       pendingPlay: this.pendingPlay,
+      hasUserGesture: this.hasUserGesture,
       volume: this.audio?.volume ?? 0,
       loop: this.audio?.loop ?? false,
       currentTime: this.audio?.currentTime ?? 0,
@@ -3013,17 +4500,241 @@ const AudioManager = {
   },
 };
 
+const CombatSystem = {
+  debugLaser: true,
+  traceDamage: 1,
+  traceRange: 8,
+  hitRadius: 0.42,
+  lastTrace: null,
+  laserLine: null,
+  laserTimer: null,
+
+  init() {
+    window.DEBUG_SHOOT_LASER = this.debugLaser;
+    window.SET_DEBUG_SHOOT_LASER = (enabled = true) => {
+      this.debugLaser = Boolean(enabled);
+      window.DEBUG_SHOOT_LASER = this.debugLaser;
+      if (!this.debugLaser) this.clearLaser();
+      return this.debugLaser;
+    };
+    window.DEBUG_TRACE_SHOT = () => this.lastTrace;
+  },
+
+  traceShotFromPointer(event) {
+    const character = RoomManager.character;
+    if (!character || !RoomManager.currentRoom?.scene) return null;
+    if (GameState.isCarryingTwoHanded()) {
+      InteractionEngine.process('blockedAimWhileCarrying');
+      return null;
+    }
+
+    const target = RoomManager.getWorldPositionFromRoomPixel(RoomManager.getRoomPixelFromPointer(event));
+    const muzzleOrigin = RoomManager.getWeaponMuzzleWorldPosition();
+    const origin = muzzleOrigin || character.position.clone();
+    if (!muzzleOrigin) origin.y += 1.1 * (character.scale?.y || 1);
+
+    const pickedHit = this.pickZombieFromPointer(event, origin);
+    const fallbackDirection = this.getFallbackShotDirection(event, origin, target);
+    const end = pickedHit?.point || origin.clone().addScaledVector(fallbackDirection, this.traceRange);
+    const hit = pickedHit || this.findZombieHit(origin, end);
+    const finalEnd = hit?.point || end;
+    this.lastTrace = {
+      roomId: RoomManager.hybridRoomData?.id,
+      origin: { x: origin.x, y: origin.y, z: origin.z },
+      end: { x: finalEnd.x, y: finalEnd.y, z: finalEnd.z },
+      activeZombies: RoomManager.getActiveNPCs().filter((npc) => npc.actorType === 'zombie').length,
+      picked: Boolean(pickedHit),
+      hit: hit ? { id: hit.npc.id, distance: hit.distance } : null,
+    };
+
+    if (window.DEBUG_SHOOT_LASER ?? this.debugLaser) this.drawLaser(origin, finalEnd, Boolean(hit));
+    if (hit) this.applyTraceHit(hit.npc);
+    else if (!NarratorVoice.isBusy()) NarratorVoice.setAmbientText('The shot line finds only rain.');
+    return this.lastTrace;
+  },
+
+  getFallbackShotDirection(event, origin, target) {
+    const character = RoomManager.character;
+    const ray = this.getPointerRay(event);
+    const fallback = ray?.direction?.clone()
+      || new THREE.Vector3(0, 0, -1).applyQuaternion(character.quaternion);
+    const direction = target
+      ? target.clone().sub(origin)
+      : fallback;
+    if (direction.lengthSq() < 0.0001) direction.copy(fallback);
+    direction.normalize();
+    return direction;
+  },
+
+  getPointerRay(event) {
+    const camera = RoomManager.currentRoom?.camera;
+    const canvas = RoomManager.renderer?.domElement;
+    if (!camera || !canvas || !event) return null;
+    const rect = canvas.getBoundingClientRect();
+    const pointer = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(pointer, camera);
+    return raycaster.ray.clone();
+  },
+
+  pickZombieFromPointer(event, origin) {
+    const zombies = RoomManager.getActiveNPCs()
+      .filter((npc) => npc.actorType === 'zombie' && npc.root?.visible !== false);
+    if (!zombies.length) return null;
+
+    const ray = this.getPointerRay(event);
+    if (ray) {
+      const raycaster = new THREE.Raycaster(ray.origin, ray.direction, 0, 100);
+      const roots = zombies.map((npc) => npc.root).filter(Boolean);
+      const hits = raycaster.intersectObjects(roots, true);
+      for (const hit of hits) {
+        const npc = zombies.find((candidate) => candidate.root === hit.object || candidate.root.children.includes(hit.object) || this.isDescendantOf(hit.object, candidate.root));
+        if (!npc) continue;
+        return {
+          npc,
+          point: hit.point.clone(),
+          distance: origin.distanceTo(hit.point),
+          missDistance: 0,
+          picked: true,
+        };
+      }
+    }
+
+    return this.pickZombieByScreenDistance(event, origin, zombies);
+  },
+
+  isDescendantOf(object, root) {
+    let current = object;
+    while (current) {
+      if (current === root) return true;
+      current = current.parent;
+    }
+    return false;
+  },
+
+  pickZombieByScreenDistance(event, origin, zombies) {
+    const camera = RoomManager.currentRoom?.camera;
+    const canvas = RoomManager.renderer?.domElement;
+    if (!camera || !canvas || !event) return null;
+    const rect = canvas.getBoundingClientRect();
+    let best = null;
+
+    zombies.forEach((npc) => {
+      const center = this.getNPCTraceCenter(npc);
+      if (!center) return;
+      const projected = center.clone().project(camera);
+      if (projected.z < -1 || projected.z > 1) return;
+      const sx = rect.left + ((projected.x + 1) * 0.5 * rect.width);
+      const sy = rect.top + ((1 - projected.y) * 0.5 * rect.height);
+      const distancePx = Math.hypot(event.clientX - sx, event.clientY - sy);
+      const radiusPx = Number.isFinite(npc.screenTraceRadiusPx) ? npc.screenTraceRadiusPx : 54;
+      if (distancePx > radiusPx) return;
+      const worldDistance = origin.distanceTo(center);
+      if (!best || distancePx < best.distancePx) {
+        best = {
+          npc,
+          point: center,
+          distance: worldDistance,
+          missDistance: distancePx,
+          distancePx,
+          picked: true,
+        };
+      }
+    });
+
+    return best;
+  },
+
+  getNPCTraceCenter(npc) {
+    if (!npc?.root) return null;
+    const box = new THREE.Box3().setFromObject(npc.root);
+    if (!Number.isFinite(box.min.x) || !Number.isFinite(box.max.x)) {
+      return npc.root.position.clone().add(new THREE.Vector3(0, 0.9, 0));
+    }
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    center.y = THREE.MathUtils.lerp(box.min.y, box.max.y, 0.58);
+    return center;
+  },
+
+  findZombieHit(origin, end) {
+    const segment = end.clone().sub(origin);
+    const lengthSq = segment.lengthSq();
+    if (lengthSq <= 0.0001) return null;
+    let best = null;
+    RoomManager.getActiveNPCs()
+      .filter((npc) => npc.actorType === 'zombie' && npc.root?.visible !== false)
+      .forEach((npc) => {
+        const center = this.getNPCTraceCenter(npc) || npc.root.position.clone();
+        const t = THREE.MathUtils.clamp(center.clone().sub(origin).dot(segment) / lengthSq, 0, 1);
+        const point = origin.clone().addScaledVector(segment, t);
+        const distance = center.distanceTo(point);
+        const radius = Number.isFinite(npc.traceRadius)
+          ? npc.traceRadius
+          : Math.max(this.hitRadius, (npc.collisionRadius || 0.34) + 0.12);
+        if (distance > radius) return;
+        const along = origin.distanceTo(point);
+        if (!best || along < best.distance) best = { npc, point, distance: along, missDistance: distance };
+      });
+    return best;
+  },
+
+  applyTraceHit(npc) {
+    npc.health = Math.max(0, (npc.health ?? 1) - this.traceDamage);
+    ThreatManager.alertRoom(GameState.currentRoom, 'danger');
+    if (npc.health <= 0) {
+      npc.active = false;
+      if (npc.root) npc.root.visible = false;
+      if (!NarratorVoice.isBusy()) NarratorVoice.setAmbientText('The trace drops the dead thing.');
+      return;
+    }
+    if (!NarratorVoice.isBusy()) NarratorVoice.setAmbientText('The trace catches dead meat.');
+  },
+
+  drawLaser(origin, end, hit = false) {
+    this.clearLaser();
+    const geometry = new THREE.BufferGeometry().setFromPoints([origin, end]);
+    const material = new THREE.LineBasicMaterial({
+      color: hit ? 0xff2020 : 0xff0000,
+      transparent: true,
+      opacity: 0.95,
+      depthTest: false,
+    });
+    this.laserLine = new THREE.Line(geometry, material);
+    this.laserLine.renderOrder = 999;
+    RoomManager.currentRoom?.scene?.add(this.laserLine);
+    this.laserTimer = window.setTimeout(() => this.clearLaser(), 140);
+  },
+
+  clearLaser() {
+    if (this.laserTimer) {
+      window.clearTimeout(this.laserTimer);
+      this.laserTimer = null;
+    }
+    if (!this.laserLine) return;
+    this.laserLine.removeFromParent();
+    this.laserLine.geometry?.dispose?.();
+    this.laserLine.material?.dispose?.();
+    this.laserLine = null;
+  },
+};
+
 const App = {
   lastTime: 0,
   movement: null,
 
   async init() {
     const canvas = document.getElementById('render-canvas');
-    await RoomManager.init(canvas);
     InventorySystem.init();
     NarratorVoice.init();
     ThreatManager.init();
     AudioManager.init();
+    CombatSystem.init();
+    GameState.updatePlayerHealthUI();
+    await RoomManager.init(canvas);
     this.movement = new TankMovementController({
       getCharacter: () => RoomManager.character,
       walkSpeed: RoomManager.characterSpeed,
@@ -3031,6 +4742,8 @@ const App = {
       bounds: RoomManager.hybridRoomData?.hybrid3d ? null : RoomManager.getMovementBounds(),
       getGroundY: (position) => RoomManager.getWalkSurfaceYAt(position),
       canMoveTo: (position, fromPosition) => RoomManager.canMoveToWorldPosition(position, fromPosition),
+      isCarryMode: () => GameState.isCarryingTwoHanded(),
+      onBlockedAim: () => InteractionEngine.process('blockedAimWhileCarrying'),
     });
     window.DEBUG_MOVE = () => ({
       controllerBounds: this.movement?.bounds,
@@ -3049,23 +4762,33 @@ const App = {
         ? RoomManager.isWorldPositionWalkable(RoomManager.character.position)
         : null,
     });
+    window.DEBUG_GAMEPAD = () => this.movement?.getGamepadDebugState?.() || null;
     this.movement.attach();
 
     canvas.addEventListener('click', (event) => {
-      if (this.movement?.state === 'aim') return;
+      const leftClick = event.button === 0;
+      const aiming = event.ctrlKey || this.movement?.isAimPressed?.() || this.movement?.state === 'aim';
+      if (leftClick && aiming) {
+        event.preventDefault();
+        CombatSystem.traceShotFromPointer(event);
+        return;
+      }
       if (NarratorVoice.isBusy()) {
         this.movement?.clearTarget();
         return;
       }
-      const handledInteraction = RoomManager.handleClick(event);
+      const pathOptions = event.detail >= 2 ? { speedMultiplier: 1.75 } : {};
+      const queueArrival = (path, onArrive) => this.movement?.setPath(path, onArrive, pathOptions);
+      const handledInteraction = RoomManager.handleClick(event, queueArrival);
       if (handledInteraction) {
-        this.movement?.clearTarget();
         return;
       }
 
-      const target = RoomManager.getWalkTargetFromPointer(event);
-      if (target) {
-        this.movement.setTarget(target);
+      const path = RoomManager.getWalkPathFromPointer(event);
+      if (path?.length) {
+        this.movement.setPath(path, null, pathOptions);
+      } else if (RoomManager.hybridRoomData?.hybrid3d) {
+        NarratorVoice.setAmbientText('Romeo studies the route. No.');
       }
     });
     canvas.addEventListener('mousemove', (event) => {
@@ -3086,6 +4809,10 @@ const App = {
       if (!this.movement.enabled) this.movement.clearTarget();
     }
     const movementState = this.movement?.update(delta) || 'idle';
+    if (this.movement?.consumeGamepadActivate?.()) {
+      AudioManager.unlockMusic();
+      RoomManager.handleGamepadActivate((path, onArrive) => this.movement?.setPath(path, onArrive));
+    }
     RoomManager.update(delta, movementState);
     ThreatManager.update(delta);
     RoomManager.render();
@@ -3093,4 +4820,9 @@ const App = {
   },
 };
 
+window.GameState = GameState;
+window.RoomManager = RoomManager;
+window.InteractionEngine = InteractionEngine;
+window.CombatSystem = CombatSystem;
+window.App = App;
 window.addEventListener('DOMContentLoaded', () => App.init());

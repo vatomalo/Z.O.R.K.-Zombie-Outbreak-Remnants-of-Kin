@@ -1,0 +1,378 @@
+{
+  "id": "downtown_swarm",
+  "displayName": "Downtown Swarm",
+  "layers": {
+    "background": "rooms/street_to_downtown/bg.svg",
+    "foreground": "rooms/street_to_downtown/fg.svg",
+    "interestMap": "rooms/street_to_downtown/interestmap.svg",
+    "walkMask": "rooms/street_to_downtown/walkmask.svg",
+    "walkMaskMode": "painted-walkable"
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1672,
+    "height": 941
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [
+        836,
+        640,
+        -2.85
+      ],
+      "bottom": [
+        836,
+        930,
+        3.35
+      ]
+    },
+    "layers": {
+      "background": "rooms/street_to_downtown/bg.svg",
+      "foreground": "rooms/street_to_downtown/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [
+        18.4,
+        10.35
+      ],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.78,
+      "backgroundExposure": 0.96,
+      "backgroundTint": "#b4a58e",
+      "backgroundTintStrength": 0.12,
+      "foregroundOpacity": 0.18
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "position": [
+        0,
+        1.75,
+        5.2
+      ],
+      "target": [
+        0,
+        1.15,
+        -1.25
+      ]
+    },
+    "walkBounds": {
+      "minX": -4.15,
+      "maxX": 4.15,
+      "minZ": -2.85,
+      "maxZ": 3.35
+    },
+    "screenScaleReference": {
+      "doorRect": [
+        625,
+        420,
+        145,
+        280
+      ],
+      "actorReferencePosition": [
+        -0.7,
+        0,
+        0.9
+      ],
+      "targetActorFractionOfDoor": 0.46
+    },
+    "lighting": {
+      "profile": "downtown_swarm",
+      "fogColor": "#050504",
+      "fogNear": 1.6,
+      "fogFar": 9,
+      "clearColor": "#010101",
+      "ambientColor": "#2a2520",
+      "ambientIntensity": 0.38,
+      "practicalColor": "#ffc875",
+      "practicalIntensity": 1.2,
+      "practicalPosition": [
+        -3.1,
+        2,
+        -0.4
+      ],
+      "windowColor": "#687b8a",
+      "windowIntensity": 0.42,
+      "windowPosition": [
+        -0.45,
+        2.8,
+        -2.7
+      ],
+      "rimColor": "#b62525",
+      "rimIntensity": 0.35,
+      "rimPosition": [
+        2.8,
+        2,
+        -2.1
+      ]
+    },
+    "actorDepthScale": {
+      "topY": 610,
+      "bottomY": 930,
+      "topScale": 0.38,
+      "bottomScale": 1.08,
+      "curve": 1.3
+    }
+  },
+  "playerStart": {
+    "x": 1040,
+    "y": 815,
+    "facing": "left"
+  },
+  "spawns": {
+    "from_parked_car": {
+      "x": 1040,
+      "y": 815,
+      "facing": "left"
+    }
+  },
+  "actors": [
+    {
+      "id": "swarm_left",
+      "label": "Zombie",
+      "type": "zombie",
+      "active": true,
+      "path": "Models/Zombie01.fbx",
+      "textureFolder": "Zombie01",
+      "position": [
+        -2.85,
+        0,
+        0.35
+      ],
+      "rotationY": 1.25,
+      "heightScale": 0.88,
+      "collisionRadius": 0.34,
+      "movement": {
+        "walkSpeed": 0.18,
+        "waitSeconds": 1.1,
+        "path": [
+          [
+            -2.85,
+            0,
+            0.35
+          ],
+          [
+            -1.7,
+            0,
+            0.6
+          ]
+        ]
+      },
+      "attackRadius": 1,
+      "damage": 8,
+      "damageCooldownMs": 1400,
+      "health": 4,
+      "traceRadius": 0.52,
+      "maxHealth": 4
+    },
+    {
+      "id": "swarm_center_far",
+      "label": "Zombie",
+      "type": "zombie",
+      "active": true,
+      "path": "Models/Zombie02.fbx",
+      "textureFolder": "Zombie02",
+      "position": [
+        -0.4,
+        0,
+        -2.2
+      ],
+      "rotationY": 0.2,
+      "heightScale": 0.66,
+      "collisionRadius": 0.32,
+      "movement": {
+        "walkSpeed": 0.17,
+        "waitSeconds": 1.6,
+        "path": [
+          [
+            -0.4,
+            0,
+            -2.2
+          ],
+          [
+            -0.15,
+            0,
+            -1.05
+          ]
+        ]
+      },
+      "attackRadius": 0.95,
+      "damage": 8,
+      "damageCooldownMs": 1400,
+      "health": 4,
+      "traceRadius": 0.5,
+      "maxHealth": 4
+    },
+    {
+      "id": "swarm_right_near",
+      "label": "Zombie",
+      "type": "zombie",
+      "active": true,
+      "path": "Models/Zombie01.fbx",
+      "textureFolder": "Zombie01",
+      "position": [
+        2.75,
+        0,
+        0.75
+      ],
+      "rotationY": -1.6,
+      "heightScale": 0.92,
+      "collisionRadius": 0.34,
+      "movement": {
+        "walkSpeed": 0.2,
+        "waitSeconds": 1.2,
+        "path": [
+          [
+            2.75,
+            0,
+            0.75
+          ],
+          [
+            1.65,
+            0,
+            0.58
+          ]
+        ]
+      },
+      "attackRadius": 1,
+      "damage": 8,
+      "damageCooldownMs": 1400,
+      "health": 4,
+      "traceRadius": 0.52,
+      "maxHealth": 4
+    },
+    {
+      "id": "swarm_back_left",
+      "label": "Zombie",
+      "type": "zombie",
+      "active": true,
+      "path": "Models/Zombie02.fbx",
+      "textureFolder": "Zombie02",
+      "position": [
+        -1.8,
+        0,
+        -1.55
+      ],
+      "rotationY": 0.75,
+      "heightScale": 0.7,
+      "collisionRadius": 0.32,
+      "movement": {
+        "walkSpeed": 0.15,
+        "waitSeconds": 1.8,
+        "path": [
+          [
+            -1.8,
+            0,
+            -1.55
+          ],
+          [
+            -1.1,
+            0,
+            -0.55
+          ]
+        ]
+      },
+      "attackRadius": 0.95,
+      "damage": 8,
+      "damageCooldownMs": 1400,
+      "health": 4,
+      "traceRadius": 0.5,
+      "maxHealth": 4
+    },
+    {
+      "id": "swarm_back_right",
+      "label": "Zombie",
+      "type": "zombie",
+      "active": true,
+      "path": "Models/Zombie01.fbx",
+      "textureFolder": "Zombie01",
+      "position": [
+        1.85,
+        0,
+        -1.75
+      ],
+      "rotationY": -0.65,
+      "heightScale": 0.68,
+      "collisionRadius": 0.32,
+      "movement": {
+        "walkSpeed": 0.16,
+        "waitSeconds": 1.4,
+        "path": [
+          [
+            1.85,
+            0,
+            -1.75
+          ],
+          [
+            1.1,
+            0,
+            -0.65
+          ]
+        ]
+      },
+      "attackRadius": 0.95,
+      "damage": 8,
+      "damageCooldownMs": 1400,
+      "health": 4,
+      "traceRadius": 0.5,
+      "maxHealth": 4
+    }
+  ],
+  "props": [],
+  "exits": [
+    {
+      "id": "back_to_parked_car",
+      "label": "Back",
+      "rect": [
+        0,
+        705,
+        190,
+        236
+      ],
+      "targetRoom": "street_to_downtown",
+      "targetSpawn": "from_street",
+      "text": "Romeo backs toward the parked car."
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "swarm_street",
+      "label": "Street",
+      "rect": [
+        780,
+        420,
+        355,
+        275
+      ],
+      "text": "The street fills by inches. First one shape. Then another. Then the math gets ugly."
+    }
+  ],
+  "onEnter": [
+    {
+      "once": "downtown_swarm.first_enter",
+      "setThreat": "danger",
+      "text": "The block answers all at once. Doors, alleys, windows. Too many feet in the rain."
+    }
+  ],
+  "interests": {
+    "#ffff00": {
+      "id": "swarm_street",
+      "label": "Street",
+      "text": "The dead are not running. They do not need to."
+    },
+    "#ff8800": {
+      "id": "street",
+      "label": "Street",
+      "text": "Rain breaks around Romeo's shoes. The crowd keeps coming."
+    }
+  },
+  "npcAnimations": {
+    "idle": "Animation/idle.fbx",
+    "walk": "Animation/walk.fbx"
+  }
+}

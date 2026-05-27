@@ -1,0 +1,297 @@
+{
+  "id": "apt_708_entry",
+  "displayName": "Apartment 708 / Entry",
+  "layers": {
+    "background": "rooms/apt_708_entry/bg.svg",
+    "foreground": "rooms/apt_708_entry/fg.svg",
+    "walkMask": "rooms/apt_708_entry/walkmask.svg",
+    "walkMaskMode": "painted-walkable",
+    "interestMap": "rooms/apt_708_entry/interestmap.svg"
+  },
+  "audio": {
+    "music": "rooms/apt_708_entry/Cassette_in_Room9.mp3",
+    "volume": 0.42,
+    "loop": true
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1920,
+    "height": 1080
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [
+        960,
+        535,
+        -3.2
+      ],
+      "bottom": [
+        960,
+        1080,
+        3.4
+      ]
+    },
+    "layers": {
+      "background": "rooms/apt_708_entry/bg.svg",
+      "foreground": "rooms/apt_708_entry/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [
+        18.4,
+        10.35
+      ],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.58,
+      "backgroundExposure": 2.35,
+      "foregroundOpacity": 0.18
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "fov": 55,
+      "position": [
+        0,
+        1.75,
+        5.2
+      ],
+      "target": [
+        0,
+        1.15,
+        -1.25
+      ]
+    },
+    "screenScaleReference": {
+      "doorRect": [
+        1440,
+        80,
+        300,
+        720
+      ],
+      "actorReferencePosition": [
+        2.55,
+        0,
+        -1.75
+      ],
+      "targetActorFractionOfDoor": 0.64
+    },
+    "lighting": {
+      "ambientColor": "#46515c",
+      "ambientIntensity": 0.72,
+      "practicalColor": "#ffc18a",
+      "practicalIntensity": 1.75,
+      "practicalPosition": [
+        -2.5,
+        1.35,
+        0.75
+      ],
+      "windowColor": "#a9c4de",
+      "windowIntensity": 1.05,
+      "windowPosition": [
+        -0.35,
+        2.8,
+        -3.2
+      ],
+      "rimColor": "#d8e6ff",
+      "rimIntensity": 0.55,
+      "rimPosition": [
+        2.9,
+        2.0,
+        -2.4
+      ]
+    }
+  },
+  "playerStart": {
+    "markerColor": "#000000",
+    "markerSearchRadius": 220,
+    "x": 1200,
+    "y": 760,
+    "facing": "down"
+  },
+  "spawns": {
+    "from_hallway": {
+      "x": 1470,
+      "y": 790,
+      "facing": "left"
+    }
+  },
+  "npcAnimations": {
+    "idle": "Animation/idle.fbx",
+    "idle01": "Animation/idle01.fbx",
+    "walk": "Animation/walk.fbx"
+  },
+  "actors": [
+    {
+      "id": "heroine",
+      "type": "npc",
+      "path": "Models/Heroine.fbx",
+      "textureFolder": "Heroine",
+      "position": [
+        -2.85,
+        0,
+        0.25
+      ],
+      "rotationY": 1.6336281798666925,
+      "heightScale": 0.98,
+      "animations": {
+        "idle": {
+          "clip": "idle",
+          "speed": 1.15
+        },
+        "walk": {
+          "clip": "walk",
+          "speed": 1.2
+        }
+      },
+      "movement": {
+        "walkSpeed": 0.42,
+        "waitSeconds": 1.8,
+        "startWait": 0.4,
+        "path": [
+          [
+            0.25,
+            0,
+            -0.25
+          ],
+          [
+            -0.25,
+            0,
+            0.2
+          ]
+        ]
+      },
+      "interaction": {
+        "id": "talkTo",
+        "name": "Heroine",
+        "dialog": {
+          "text": "Keep your weapon ready. The dead are reacting to sound.",
+          "voice": "weaponready",
+          "choices": [
+            {
+              "label": "Ask about exits",
+              "voice": "exits",
+              "text": "The door at the back leads deeper in. I heard something dragging chains beyond it."
+            },
+            {
+              "label": "Stay focused",
+              "text": "She nods once and turns her attention back to the shadows."
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "exits": [
+    {
+      "id": "hallway_door",
+      "rect": [
+        1410,
+        410,
+        230,
+        380
+      ],
+      "targetRoom": "hallway_7f",
+      "targetSpawn": "from_apartment"
+    }
+  ],
+  "interests": {
+    "#ff0000": {
+      "id": "front_door",
+      "label": "Door",
+      "cursor": "exit",
+      "action": "openDoor",
+      "targetRoom": "hallway_7f",
+      "targetSpawn": "from_apartment",
+      "voice": "doorheavy",
+      "text": "The door is heavy, but not locked. You can hear distant movement beyond."
+    },
+    "#00ff00": {
+      "id": "desk",
+      "label": "Desk",
+      "voice": "desk",
+      "text": "Homework, old bills, and a lamp trying harder than anyone else in the room."
+    },
+    "#ff8800": {
+      "id": "flag",
+      "label": "Flag",
+      "voice": "flag",
+      "text": "A Chilean flag, pinned up like proof somebody here still believed in places. Romeo looks at it longer than he means to."
+    },
+    "#0000ff": {
+      "id": "bed",
+      "label": "Bed",
+      "voice": "bed",
+      "text": "The sheets smell like cold sweat and cheap detergent. Somebody slept badly here."
+    },
+    "#ffff00": {
+      "id": "coffee_table",
+      "label": "Table",
+      "voice": "table",
+      "text": "A battlefield of mugs, paper, and things nobody wanted to throw away."
+    },
+    "#ff00ff": {
+      "id": "window",
+      "label": "Window",
+      "voice": "window",
+      "text": "Snow crawls down the glass. Outside has the decency to stay outside."
+    },
+    "#00ffff": {
+      "id": "tv",
+      "label": "Television",
+      "voice": "television",
+      "text": "Dead screen. Heavy glass. The kind of silence that used to mean late-night movies."
+    },
+    "#380f04": {
+      "id": "lamp",
+      "label": "Lamp",
+      "voice": "lamp",
+      "text": "Camera on, camera off"
+    },
+    "#808080": {
+      "id": "punchingbag",
+      "label": "Punchingbag",
+      "voice": "punchy",
+      "text": "Judging by the dents, somebody was training for the end of the world."
+    },
+    "#ffffff": {
+      "id": "books",
+      "label": "Books",
+      "voice": "books",
+      "text": "Apparently the chosen one only needed friendship, courage, and a legendary blade."
+    },
+    "#955746": {
+      "id": "jacket",
+      "label": "Jacket",
+      "voice": "jacket",
+      "text": "It's my jacket, but after all of this, it feels like its not mine anymore."
+    },
+    "#042d0e": {
+      "id": "picture",
+      "label": "Picture",
+      "voice": "picture",
+      "text": "I look so young, a different life, was I ever happy, I wonder if I have ever been"
+    },
+    "#26863d": {
+      "id": "vhs",
+      "label": "VHS",
+      "voice": "vhs",
+      "text": "These VHS tapes might survive longer than me."
+    },
+    "#161d47": {
+      "id": "pictures",
+      "label": "Pictures",
+      "voice": "pictures",
+      "text": "Pictures of Tina and me, we used to be so happy. Or so it seemed."
+    },
+    "#2d3c9e": {
+      "id": "heater",
+      "label": "Heater",
+      "voice": "heater",
+      "text": "Atleast something heats up this place"
+    }
+  }
+}

@@ -1,0 +1,383 @@
+{
+  "id": "garage_workshop",
+  "displayName": "Garage Workshop",
+  "layers": {
+    "background": "rooms/garage_workshop/bg.png",
+    "foreground": "rooms/garage_workshop/fg.svg",
+    "interestMap": "rooms/garage_workshop/interestmap.svg",
+    "walkMask": "rooms/garage_workshop/walkmask.svg",
+    "walkMaskMode": "painted-walkable"
+  },
+  "camera": {
+    "type": "fixed",
+    "width": 1672,
+    "height": 941
+  },
+  "hybrid3d": {
+    "enabled": true,
+    "walkSurfaceY": -3.6,
+    "walkPlaneFromRoomPixels": {
+      "top": [
+        836,
+        595,
+        -3
+      ],
+      "bottom": [
+        836,
+        900,
+        3.2
+      ]
+    },
+    "layers": {
+      "background": "rooms/garage_workshop/bg.svg",
+      "foreground": "rooms/garage_workshop/fg.svg"
+    },
+    "composition": {
+      "baseLayerSize": [
+        18.4,
+        10.35
+      ],
+      "roomZoom": 1,
+      "doorWorldHeight": 3.6,
+      "actorDoorRatio": 0.33,
+      "npcScale": 1,
+      "propScale": 0.78,
+      "backgroundExposure": 1.1,
+      "backgroundTint": "#7899c2",
+      "backgroundTintStrength": 0.3,
+      "foregroundOpacity": 0.34
+    },
+    "threeCamera": {
+      "projection": "orthographic",
+      "orthoHeight": 10.35,
+      "position": [
+        0,
+        1.75,
+        5.2
+      ],
+      "target": [
+        0,
+        1.15,
+        -1.25
+      ]
+    },
+    "walkBounds": {
+      "minX": -3.8,
+      "maxX": 3.8,
+      "minZ": -2.35,
+      "maxZ": 1.6
+    },
+    "screenScaleReference": {
+      "doorRect": [
+        28,
+        210,
+        230,
+        455
+      ],
+      "actorReferencePosition": [
+        0,
+        0,
+        -1.5
+      ],
+      "targetActorFractionOfDoor": 0.48
+    },
+    "lighting": {
+      "profile": "garage_outside_worse",
+      "fogColor": "#05070b",
+      "fogNear": 2,
+      "fogFar": 12,
+      "clearColor": "#020306",
+      "ambientColor": "#26313a",
+      "ambientIntensity": 0.46,
+      "practicalColor": "#9fb7d4",
+      "practicalIntensity": 1,
+      "practicalPosition": [
+        -2.4,
+        1.9,
+        -0.5
+      ],
+      "windowColor": "#4f6f94",
+      "windowIntensity": 1.25,
+      "windowPosition": [
+        2.4,
+        2.5,
+        -3
+      ],
+      "rimColor": "#b62525",
+      "rimIntensity": 0.28,
+      "rimPosition": [
+        2.8,
+        2,
+        -2.2
+      ]
+    },
+    "actorDepthScale": {
+      "topY": 500,
+      "bottomY": 900,
+      "topScale": 0.62,
+      "bottomScale": 1.02,
+      "curve": 1.25
+    }
+  },
+  "playerStart": {
+    "x": 836,
+    "y": 760,
+    "facing": "up"
+  },
+  "spawns": {
+    "from_basement": {
+      "x": 200,
+      "y": 700,
+      "facing": "right"
+    }
+  },
+  "actors": [],
+  "exits": [
+    {
+      "id": "storage_side_door",
+      "label": "Storage Door",
+      "rect": [
+        732,
+        265,
+        185,
+        175
+      ],
+      "targetRoom": "basement_storage",
+      "targetSpawn": "from_garage",
+      "text": "The side door leads back to the basement storage room."
+    },
+    {
+      "id": "garage_door_street_exit",
+      "label": "Garage Door",
+      "rect": [
+        1414,
+        210,
+        230,
+        455
+      ],
+      "requiresFlag": "carFixed",
+      "lockedText": "The street is beyond the garage door. Leaving on foot is not the plan.",
+      "text": "The garage door faces the street. The car is alive enough to try.",
+      "choices": [
+        {
+          "label": "Leave",
+          "action": {
+            "text": "Romeo gets the car through the garage door. The street receives him without mercy.",
+            "driveSequence": {
+              "firstRoom": "street",
+              "firstSpawn": "from_garage",
+              "secondRoom": "street_to_downtown",
+              "secondSpawn": "from_garage",
+              "vanishingPoint": "58% 44%",
+              "firstHoldMs": 2200,
+              "collapseMs": 1700,
+              "secondHoldMs": 6800,
+              "carStartX": -2.35,
+              "carEndX": 0.25,
+              "backgroundShift": -0.5,
+              "afterText": "The next block slides beside the windows. Romeo keeps both hands on the wheel.",
+              "parallaxMs": 6800,
+              "sideLoops": 4,
+              "scrollWorldUnits": 73.6,
+              "carHoldX": -1.15,
+              "carZ": 2.55,
+              "firstPersonZoomScale": 2.05,
+              "carY": -2.35
+            }
+          }
+        },
+        {
+          "label": "Stay",
+          "action": {
+            "text": "Romeo stays in the garage a moment longer."
+          }
+        }
+      ]
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "car_hood",
+      "label": "Car Hood",
+      "rect": [
+        1162,
+        420,
+        180,
+        90
+      ],
+      "action": "useCrowbarOnCar"
+    },
+    {
+      "id": "fuse_panel",
+      "label": "Fuse Panel",
+      "rect": [
+        1042,
+        465,
+        120,
+        95
+      ],
+      "action": "interactCarFusePanel"
+    },
+    {
+      "id": "fuel_cap",
+      "label": "Fuel Cap",
+      "rect": [
+        947,
+        510,
+        85,
+        80
+      ],
+      "action": "useGasolineOnCar"
+    },
+    {
+      "id": "car_body",
+      "label": "Car",
+      "rect": [
+        937,
+        420,
+        450,
+        215
+      ],
+      "action": "inspectCar"
+    },
+    {
+      "id": "crowbar_pickup",
+      "label": "Crowbar",
+      "rect": [
+        602,
+        560,
+        210,
+        55
+      ],
+      "action": "pickupCrowbar"
+    },
+    {
+      "id": "screwdriver_pickup",
+      "label": "Screwdriver",
+      "rect": [
+        102,
+        250,
+        280,
+        400
+      ],
+      "action": "pickupScrewdriver"
+    },
+    {
+      "id": "fuse_pickup",
+      "label": "Fuse",
+      "rect": [
+        462,
+        260,
+        275,
+        105
+      ],
+      "action": "pickupFuse"
+    },
+    {
+      "id": "gasoline_can_pickup",
+      "label": "Gasoline Can",
+      "rect": [
+        372,
+        300,
+        95,
+        285
+      ],
+      "action": "pickupGasolineCan"
+    }
+  ],
+  "onEnter": [
+    {
+      "once": "garage_workshop.first_enter",
+      "text": "The garage is quiet enough to hear the car cooling in its own dust."
+    }
+  ],
+  "interests": {
+    "#ff0000": {
+      "id": "storage_side_door",
+      "label": "Storage Door",
+      "cursor": "exit",
+      "targetRoom": "basement_storage",
+      "targetSpawn": "from_garage",
+      "text": "The side door leads back to the basement storage room."
+    },
+    "#0000ff": {
+      "id": "escape_car",
+      "label": "Car",
+      "action": "tryStartCar",
+      "text": "The car sits under dust like a promise nobody can afford yet."
+    },
+    "#00ffff": {
+      "id": "small_window",
+      "label": "Window",
+      "text": "A barred window shows a slice of cold blue outside. Nothing moves there right now."
+    },
+    "#ffff00": {
+      "id": "tool_board",
+      "label": "Tools",
+      "action": "pickupScrewdriver"
+    },
+    "#00ff00": {
+      "id": "workbench",
+      "label": "Workbench",
+      "action": "pickupCrowbar"
+    },
+    "#ff8800": {
+      "id": "supply_shelf",
+      "label": "Supply Shelf",
+      "action": "pickupFuse"
+    },
+    "#ff00ff": {
+      "id": "gasoline_can",
+      "label": "Gasoline Can",
+      "action": "pickupGasolineCan"
+    },
+    "#955746": {
+      "id": "garage_door_street_exit",
+      "label": "Garage Door",
+      "cursor": "exit",
+      "requiresFlag": "carFixed",
+      "lockedText": "The street is beyond the garage door. Leaving on foot is not the plan.",
+      "text": "The garage door faces the street. The car is alive enough to try.",
+      "choices": [
+        {
+          "label": "Leave",
+          "action": {
+            "text": "Romeo opens the garage door. The street receives him without mercy.",
+            "driveSequence": {
+              "firstRoom": "street",
+              "firstSpawn": "from_garage",
+              "secondRoom": "street_to_downtown",
+              "secondSpawn": "from_garage",
+              "vanishingPoint": "58% 44%",
+              "firstHoldMs": 2200,
+              "collapseMs": 1700,
+              "secondHoldMs": 6800,
+              "carStartX": -2.35,
+              "carEndX": 0.25,
+              "backgroundShift": -0.5,
+              "afterText": "The next block slides beside the windows. Romeo keeps both hands on the wheel.",
+              "parallaxMs": 6800,
+              "sideLoops": 4,
+              "scrollWorldUnits": 73.6,
+              "carHoldX": -1.15,
+              "carZ": 2.55,
+              "firstPersonZoomScale": 2.05,
+              "carY": -2.35
+            }
+          }
+        },
+        {
+          "label": "Stay",
+          "action": {
+            "text": "Romeo stays in the garage a moment longer."
+          }
+        }
+      ]
+    },
+    "#808080": {
+      "id": "tire_and_boards",
+      "label": "Tire",
+      "text": "A loose tire leans against warped boards. Nothing here is ready to move fast."
+    }
+  }
+}
