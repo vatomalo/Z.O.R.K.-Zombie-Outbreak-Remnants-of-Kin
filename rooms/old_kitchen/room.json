@@ -141,7 +141,7 @@
     "#808080": {
       "id": "portrait",
       "label": "Portrait",
-      "text": "A little portrait watches the kitchen from the wall."
+      "text": "A little portrait watches the kitchen from the wall. Its frame is cracked where someone must have hit the wall beside it."
     },
     "#ff00ff": {
       "id": "stove",
@@ -156,7 +156,7 @@
     "#ff0000": {
       "id": "lower_cabinets",
       "label": "Counter",
-      "text": "A sink, dishes, and lower cabinets. The kitchen looks used, then abandoned mid-thought."
+      "action": "pickupCrowbar"
     },
     "#000000": {
       "id": "kitchen_door",
