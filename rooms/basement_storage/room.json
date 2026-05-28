@@ -112,7 +112,7 @@
   "onEnter": [
     {
       "once": "basement_storage.first_enter",
-      "text": "The basement air tastes like wet cardboard and old wire. Romeo keeps one hand near the wall."
+      "text": "The basement air tastes like wet cardboard, old wire, and the promise of something heavy to carry back."
     }
   ],
   "interests": {
@@ -170,7 +170,7 @@
     "#955746": {
       "id": "barrel_coat",
       "label": "Barrel",
-      "text": "A coat hangs over a barrel. It looks less abandoned than removed."
+      "action": "pickupGasolineCan"
     },
     "#ff0000": {
       "id": "right_storage",
