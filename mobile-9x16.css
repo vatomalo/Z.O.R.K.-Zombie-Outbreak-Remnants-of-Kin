@@ -1,0 +1,175 @@
+/*
+  9:16 portrait cabinet override for phones.
+  Loaded after mobile-scummvm.css.
+
+  This keeps the rendered game stage in a vertical 9:16 frame,
+  then docks the ScummVM-like command UI underneath it.
+*/
+
+@media (max-width: 820px) and (orientation: portrait), (pointer: coarse) and (hover: none) and (orientation: portrait) {
+  :root {
+    --zork-safe-top: env(safe-area-inset-top, 0px);
+    --zork-safe-right: env(safe-area-inset-right, 0px);
+    --zork-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --zork-safe-left: env(safe-area-inset-left, 0px);
+    --zork-mobile-deck-height: clamp(178px, 31dvh, 248px);
+    --zork-stage-max-height: calc(100dvh - var(--zork-mobile-deck-height) - var(--zork-safe-top) - var(--zork-safe-bottom));
+    --zork-stage-width: min(calc(100vw - var(--zork-safe-left) - var(--zork-safe-right)), calc(var(--zork-stage-max-height) * 9 / 16));
+    --zork-stage-height: calc(var(--zork-stage-width) * 16 / 9);
+  }
+
+  html,
+  body {
+    background:
+      linear-gradient(180deg, #000 0%, #050403 48%, #000 100%);
+  }
+
+  #game-root {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    display: block;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 34%, rgba(80, 64, 42, 0.22), transparent 46%),
+      #000;
+  }
+
+  #canvas-wrapper {
+    position: fixed;
+    top: calc(var(--zork-safe-top) + 4px);
+    left: 50%;
+    width: var(--zork-stage-width);
+    height: var(--zork-stage-height);
+    max-width: calc(100vw - var(--zork-safe-left) - var(--zork-safe-right));
+    max-height: var(--zork-stage-max-height);
+    transform: translateX(-50%);
+    overflow: hidden;
+    background: #000;
+    border: 2px solid rgba(232, 224, 209, 0.22);
+    box-shadow:
+      0 0 0 3px #000,
+      0 12px 28px rgba(0, 0, 0, 0.82),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  #render-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #000;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+  }
+
+  #canvas-wrapper::after {
+    content: 'Z.O.R.K';
+    position: absolute;
+    left: 8px;
+    top: 7px;
+    z-index: 3;
+    padding: 2px 5px;
+    border: 1px solid rgba(232, 224, 209, 0.2);
+    background: rgba(0, 0, 0, 0.58);
+    color: rgba(232, 224, 209, 0.78);
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    pointer-events: none;
+  }
+
+  #ui-overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--zork-mobile-deck-height);
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'status'
+      'inventory'
+      'narrator';
+    padding:
+      0
+      max(6px, var(--zork-safe-right))
+      max(6px, var(--zork-safe-bottom))
+      max(6px, var(--zork-safe-left));
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.74) 8px, #000 22px),
+      #000;
+  }
+
+  .status-bar {
+    min-height: 38px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+  }
+
+  .status-row {
+    font-size: clamp(9px, 2.55vw, 11px);
+  }
+
+  #inventory-panel {
+    min-height: 42px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  #inventory-panel h2 {
+    writing-mode: horizontal-tb;
+    transform: none;
+    font-size: 9px;
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .inventory-slot {
+    height: 28px;
+    font-size: 7.5px;
+  }
+
+  #narrator-panel {
+    min-height: 0;
+    height: 100%;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .narrator-text {
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+    font-size: clamp(10.5px, 2.95vw, 13px);
+    line-height: 1.28;
+  }
+
+  .choice-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .choice-button {
+    min-height: 34px;
+    padding: 7px 8px;
+    font-size: clamp(10px, 2.8vw, 12px);
+  }
+}
+
+@media (max-width: 380px) and (orientation: portrait) {
+  :root {
+    --zork-mobile-deck-height: clamp(188px, 34dvh, 260px);
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .choice-button {
+    min-height: 32px;
+  }
+}
