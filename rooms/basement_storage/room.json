@@ -97,7 +97,12 @@
       "rect": [25, 230, 145, 665],
       "targetRoom": "old_kitchen",
       "targetSpawn": "from_basement",
-      "text": "The stairs climb back toward the sour kitchen light."
+      "text": "The stairs climb back toward the sour kitchen light.",
+      "action": {
+        "targetRoom": "old_kitchen",
+        "targetSpawn": "from_basement",
+        "text": "I climb back toward the kitchen. The basement keeps breathing behind me."
+      }
     },
     {
       "id": "garage_door",
@@ -106,7 +111,13 @@
       "targetRoom": "garage_workshop",
       "targetSpawn": "from_basement",
       "raiseNoise": 10,
-      "text": "The door drags across the concrete. Somewhere above, something answers."
+      "text": "The door drags across the concrete. Somewhere above, something answers.",
+      "action": {
+        "targetRoom": "garage_workshop",
+        "targetSpawn": "from_basement",
+        "raiseNoise": 10,
+        "text": "The garage door drags across the concrete. Somewhere above, something answers."
+      }
     }
   ],
   "hotspots": [
@@ -132,7 +143,7 @@
       "cursor": "exit",
       "targetRoom": "old_kitchen",
       "targetSpawn": "from_basement",
-      "text": "The stairwell climbs back toward the kitchen. The dark below does not complain when Romeo leaves."
+      "text": "I climb back toward the kitchen. The dark below does not complain when I leave."
     },
     "#00ff00": {
       "id": "storage_shelves",
@@ -140,7 +151,7 @@
       "once": "basement_storage.shelves.screwdriver",
       "giveItem": "screwdriver",
       "text": "A flathead screwdriver slides from behind a row of dead paint cans. Small miracle, cheap handle.",
-      "repeatText": "Rows of jars, tins, and forgotten supplies. The useful thing is already in Romeo's pocket."
+      "repeatText": "Rows of jars, tins, and forgotten supplies. The useful thing is already in my pocket."
     },
     "#00ffff": {
       "id": "utility_sink",
@@ -164,7 +175,7 @@
       "giveItem": "fuse",
       "setFlag": "found_fuse",
       "raiseNoise": 8,
-      "text": "Behind the cracked panel, Romeo finds a fuse that somehow survived the building better than the people did.",
+      "text": "Behind the cracked panel, I find a fuse that somehow survived the building better than the people did.",
       "repeatText": "The breaker box is empty now. Its switches stare back like bad teeth."
     },
     "#808080": {
