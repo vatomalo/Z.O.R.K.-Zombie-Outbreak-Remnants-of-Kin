@@ -42,7 +42,6 @@
       .replace(/I takes/g, 'I take')
       .replace(/I studies/g, 'I study')
       .replace(/I decides/g, 'I decide')
-      .replace(/I cannot tell/g, 'I cannot tell')
       .replace(/I's/g, 'my');
   }
 
@@ -61,6 +60,33 @@
     return true;
   }
 
+  function polishDriveSequence(sequence = {}) {
+    if (!sequence || typeof sequence !== 'object') return sequence;
+    const startsOnStreet = sequence.firstRoom === 'street' || !sequence.firstRoom;
+    const goesDowntown = sequence.secondRoom === 'street_to_downtown' || sequence.secondSpawn === 'from_garage' || sequence.secondSpawn === 'from_street';
+    if (!startsOnStreet || !goesDowntown) return sequence;
+
+    return {
+      ...sequence,
+      vanishingPoint: sequence.vanishingPoint === '58% 44%' || !sequence.vanishingPoint ? '62% 44%' : sequence.vanishingPoint,
+      firstPersonZoomScale: Math.min(sequence.firstPersonZoomScale ?? 1.92, 1.92),
+      carStartX: Math.max(sequence.carStartX ?? -2.15, -2.15),
+      carHoldX: Math.max(sequence.carHoldX ?? -0.85, -0.85),
+      carEndX: Math.max(sequence.carEndX ?? 0.45, 0.45),
+      carZ: Number.isFinite(sequence.carZ) ? Math.min(sequence.carZ, -2.55) : -2.55,
+      afterText: sequence.afterText ? zorkText(sequence.afterText) : 'The next block moves past in wet slices of light. I keep both hands on the wheel.',
+    };
+  }
+
+  function patchDriveSequence() {
+    const room = window.RoomManager;
+    if (!room || room.__zorkDrivePolished || typeof room.playDriveSequence !== 'function') return false;
+    room.__zorkDrivePolished = true;
+    const originalDrive = room.playDriveSequence.bind(room);
+    room.playDriveSequence = (sequence = {}, action = {}) => originalDrive(polishDriveSequence(sequence), action);
+    return true;
+  }
+
   function patchMovementAnimation() {
     const room = window.RoomManager;
     const app = window.App;
@@ -70,7 +96,7 @@
     const action = animator?.currentAction;
     if (!animator || !action || !movement || !currentName) return;
 
-    const fastMultiplier = movement.path?.length || movement.targetPosition ? movement.pathSpeedMultiplier || 1 : 1;
+    const fastMultiplier = (movement.path?.length || movement.targetPosition) ? (movement.pathSpeedMultiplier || 1) : 1;
     const locomotion = ['walk', 'backpedal', 'carry_walk'];
     if (!locomotion.includes(currentName)) return;
 
@@ -81,6 +107,7 @@
 
   function tick() {
     patchNarrator();
+    patchDriveSequence();
     patchMovementAnimation();
     requestAnimationFrame(tick);
   }
