@@ -17,26 +17,15 @@
     "enabled": true,
     "walkSurfaceY": -3.6,
     "walkPlaneFromRoomPixels": {
-      "top": [
-        836,
-        505,
-        -3.15
-      ],
-      "bottom": [
-        836,
-        930,
-        3.45
-      ]
+      "top": [836, 505, -3.15],
+      "bottom": [836, 930, 3.45]
     },
     "layers": {
       "background": "rooms/street/bg.png",
       "foreground": "rooms/street/fg.svg"
     },
     "composition": {
-      "baseLayerSize": [
-        18.4,
-        10.35
-      ],
+      "baseLayerSize": [18.4, 10.35],
       "roomZoom": 1,
       "doorWorldHeight": 3.6,
       "actorDoorRatio": 0.33,
@@ -50,16 +39,8 @@
     "threeCamera": {
       "projection": "orthographic",
       "orthoHeight": 10.35,
-      "position": [
-        0,
-        1.75,
-        5.2
-      ],
-      "target": [
-        0,
-        1.15,
-        -1.25
-      ]
+      "position": [0, 1.75, 5.2],
+      "target": [0, 1.15, -1.25]
     },
     "walkBounds": {
       "minX": -4.15,
@@ -68,17 +49,8 @@
       "maxZ": 3.35
     },
     "screenScaleReference": {
-      "doorRect": [
-        95,
-        160,
-        270,
-        520
-      ],
-      "actorReferencePosition": [
-        -3.05,
-        0,
-        0.8
-      ],
+      "doorRect": [95, 160, 270, 520],
+      "actorReferencePosition": [-3.05, 0, 0.8],
       "targetActorFractionOfDoor": 0.48
     },
     "lighting": {
@@ -91,25 +63,13 @@
       "ambientIntensity": 0.42,
       "practicalColor": "#ffd7a0",
       "practicalIntensity": 1.2,
-      "practicalPosition": [
-        -3.05,
-        2.1,
-        -0.25
-      ],
+      "practicalPosition": [-3.05, 2.1, -0.25],
       "windowColor": "#607d9d",
       "windowIntensity": 0.8,
-      "windowPosition": [
-        1.5,
-        2.8,
-        -2.6
-      ],
+      "windowPosition": [1.5, 2.8, -2.6],
       "rimColor": "#7894b0",
       "rimIntensity": 0.24,
-      "rimPosition": [
-        2.8,
-        2,
-        -2.2
-      ]
+      "rimPosition": [2.8, 2, -2.2]
     },
     "actorDepthScale": {
       "topY": 505,
@@ -146,111 +106,86 @@
     {
       "id": "street_to_downtown",
       "label": "Downtown",
-      "rect": [
-        640,
-        500,
-        560,
-        360
-      ],
-      "text": "Romeo follows the street toward downtown.",
+      "rect": [640, 500, 560, 360],
+      "text": "I follow the street toward downtown. The road is wet, black, and pretending not to watch me.",
       "driveSequence": {
         "firstRoom": "street",
         "firstSpawn": "from_garage",
         "secondRoom": "street_to_downtown",
         "secondSpawn": "from_street",
-        "vanishingPoint": "58% 44%",
+        "vanishingPoint": "62% 44%",
         "firstHoldMs": 1800,
         "collapseMs": 1700,
         "secondHoldMs": 6800,
-        "carStartX": -2.35,
-        "carEndX": 0.25,
+        "carStartX": -2.15,
+        "carEndX": 0.45,
         "backgroundShift": -0.5,
-        "afterText": "The next block moves past in wet slices of light.",
+        "afterText": "The next block moves past in wet slices of light. I keep both hands on the wheel.",
         "parallaxMs": 6800,
         "sideLoops": 4,
         "scrollWorldUnits": 73.6,
-        "carHoldX": -1.15,
-        "carZ": 2.55,
-        "firstPersonZoomScale": 2.05,
+        "carHoldX": -0.85,
+        "carZ": -2.55,
+        "firstPersonZoomScale": 1.92,
         "carY": -2.35
       }
     },
     {
       "id": "apartment_708_door",
       "label": "708 Door",
-      "rect": [
-        95,
-        160,
-        270,
-        520
-      ],
+      "rect": [95, 160, 270, 520],
       "targetRoom": "apt_708_entry",
       "targetSpawn": "from_hallway",
-      "text": "Romeo goes back through the door marked 708."
+      "text": "I go back through the door marked 708. Going back is not the same as being safe."
     },
     {
       "id": "garage_shutter",
       "label": "Garage Door",
-      "rect": [
-        1410,
-        330,
-        245,
-        360
-      ],
+      "rect": [1410, 330, 245, 360],
       "targetRoom": "garage_workshop",
       "targetSpawn": "from_basement",
-      "text": "Romeo slips back through the garage door."
+      "text": "I slip back through the garage door before the street starts making demands."
     }
   ],
   "hotspots": [
     {
       "id": "street_forward",
       "label": "Downtown",
-      "rect": [
-        640,
-        500,
-        560,
-        360
-      ],
-      "text": "Romeo follows the street toward downtown.",
+      "rect": [640, 500, 560, 360],
+      "text": "I follow the street toward downtown. The road narrows like it wants to choose for me.",
       "driveSequence": {
         "firstRoom": "street",
         "firstSpawn": "from_garage",
         "secondRoom": "street_to_downtown",
         "secondSpawn": "from_street",
-        "vanishingPoint": "58% 44%",
+        "vanishingPoint": "62% 44%",
         "firstHoldMs": 1800,
         "collapseMs": 1700,
         "secondHoldMs": 6800,
-        "carStartX": -2.35,
-        "carEndX": 0.25,
+        "carStartX": -2.15,
+        "carEndX": 0.45,
         "backgroundShift": -0.5,
-        "afterText": "The next block moves past in wet slices of light.",
+        "afterText": "The next block moves past in wet slices of light. I keep both hands on the wheel.",
         "parallaxMs": 6800,
         "sideLoops": 4,
         "scrollWorldUnits": 73.6,
-        "carHoldX": -1.15,
-        "carZ": 2.55,
-        "firstPersonZoomScale": 2.05,
+        "carHoldX": -0.85,
+        "carZ": -2.55,
+        "firstPersonZoomScale": 1.92,
         "carY": -2.35
       }
     },
     {
       "id": "no_parking_sign",
       "label": "No Parking Sign",
-      "rect": [
-        1435,
-        220,
-        180,
-        110
-      ],
-      "text": "NO PARKING. 24 HOUR ACCESS. Tow away zone. The sign still believes in rules."
+      "rect": [1435, 220, 180, 110],
+      "text": "NO PARKING. 24 HOUR ACCESS. Tow away zone. The sign still believes in rules. Cute."
     }
   ],
   "onEnter": [
     {
       "once": "street.first_enter",
-      "text": "The street opens in front of him, cold and wide and wrong."
+      "text": "The street opens in front of me, cold and wide and wrong. The city has that dead-hour look, but it is not dead enough."
     }
   ],
   "interests": {
@@ -260,16 +195,16 @@
       "cursor": "exit",
       "targetRoom": "apt_708_entry",
       "targetSpawn": "from_hallway",
-      "text": "Romeo goes back through the door marked 708."
+      "text": "I go back through the door marked 708. Home is not home anymore, but it still knows my outline."
     },
     "#00ff00": {
-      "id": "intercom",
-      "label": "Intercom",
-      "text": "The intercom plate is scratched blind. No names left. No voices either."
+      "id": "dead_intercom",
+      "label": "Dead Intercom",
+      "text": "The intercom plate is scratched blind. No names left. No voices either. A whole building reduced to buttons nobody answers."
     },
     "#0000ff": {
       "id": "street_depth",
-      "label": "Downtown",
+      "label": "Downtown Line",
       "cursor": "exit",
       "text": "The alley narrows toward downtown. Wet asphalt reflects lamps that look too tired to help.",
       "driveSequence": {
@@ -277,55 +212,55 @@
         "firstSpawn": "from_garage",
         "secondRoom": "street_to_downtown",
         "secondSpawn": "from_street",
-        "vanishingPoint": "58% 44%",
+        "vanishingPoint": "62% 44%",
         "firstHoldMs": 1800,
         "collapseMs": 1700,
         "secondHoldMs": 6800,
-        "carStartX": -2.35,
-        "carEndX": 0.25,
+        "carStartX": -2.15,
+        "carEndX": 0.45,
         "backgroundShift": -0.5,
-        "afterText": "The next block moves past in wet slices of light.",
+        "afterText": "The next block moves past in wet slices of light. I keep both hands on the wheel.",
         "parallaxMs": 6800,
         "sideLoops": 4,
         "scrollWorldUnits": 73.6,
-        "carHoldX": -1.15,
-        "carZ": 2.55,
-        "firstPersonZoomScale": 2.05,
+        "carHoldX": -0.85,
+        "carZ": -2.55,
+        "firstPersonZoomScale": 1.92,
         "carY": -2.35
       }
     },
     "#ffff00": {
-      "id": "trash_cans",
-      "label": "Trash Cans",
-      "text": "Metal cans crowd the curb. Their lids shine with rain and old grease."
+      "id": "curbside_cans",
+      "label": "Curbside Cans",
+      "text": "Metal cans crowd the curb. Their lids shine with rain and old grease. Every clatter would be a dinner bell."
     },
     "#ff00ff": {
       "id": "garage_shutter",
-      "label": "Garage Door",
+      "label": "Garage Shutter",
       "cursor": "exit",
       "targetRoom": "garage_workshop",
       "targetSpawn": "from_basement",
-      "text": "Romeo slips back through the garage door."
+      "text": "I slip back through the garage door before the street starts making demands."
     },
     "#00ffff": {
-      "id": "no_parking_sign",
-      "label": "No Parking Sign",
-      "text": "NO PARKING. 24 HOUR ACCESS. Tow away zone. The sign still believes in rules."
+      "id": "parking_sign",
+      "label": "Parking Sign",
+      "text": "The sign says NO PARKING with the confidence of a world that still had paperwork."
     },
     "#955746": {
-      "id": "street_lamp",
-      "label": "Street Lamp",
-      "text": "The lamp hums over the alley, warm only to itself."
+      "id": "lonely_streetlamp",
+      "label": "Lonely Streetlamp",
+      "text": "The lamp hums over the alley, warm only to itself. Even the light is rationing kindness."
     },
     "#808080": {
-      "id": "trash_bags",
-      "label": "Trash Bags",
-      "text": "Black bags slump at the edge of the light. Romeo decides not to count them."
+      "id": "black_bags",
+      "label": "Black Bags",
+      "text": "Black bags slump at the edge of the light. I decide not to count them. Counting makes things real."
     },
     "#ff8800": {
-      "id": "right_side_trash",
-      "label": "Trash",
-      "text": "A cone, cans, and torn paper collect beneath the shutter like the street swept them there."
+      "id": "shutter_trashline",
+      "label": "Shutter Trashline",
+      "text": "A cone, cans, and torn paper collect beneath the shutter like the street swept all its evidence there."
     }
   },
   "npcAnimations": {
