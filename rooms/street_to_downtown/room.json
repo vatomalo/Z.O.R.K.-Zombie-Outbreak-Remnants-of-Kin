@@ -17,26 +17,15 @@
     "enabled": true,
     "walkSurfaceY": -3.6,
     "walkPlaneFromRoomPixels": {
-      "top": [
-        836,
-        640,
-        -2.85
-      ],
-      "bottom": [
-        836,
-        930,
-        3.35
-      ]
+      "top": [836, 640, -2.85],
+      "bottom": [836, 930, 3.35]
     },
     "layers": {
       "background": "rooms/street_to_downtown/bg.svg",
       "foreground": "rooms/street_to_downtown/fg.svg"
     },
     "composition": {
-      "baseLayerSize": [
-        18.4,
-        10.35
-      ],
+      "baseLayerSize": [18.4, 10.35],
       "roomZoom": 1,
       "doorWorldHeight": 3.6,
       "actorDoorRatio": 0.33,
@@ -50,16 +39,8 @@
     "threeCamera": {
       "projection": "orthographic",
       "orthoHeight": 10.35,
-      "position": [
-        0,
-        1.75,
-        5.2
-      ],
-      "target": [
-        0,
-        1.15,
-        -1.25
-      ]
+      "position": [0, 1.75, 5.2],
+      "target": [0, 1.15, -1.25]
     },
     "walkBounds": {
       "minX": -4.15,
@@ -68,17 +49,8 @@
       "maxZ": 3.35
     },
     "screenScaleReference": {
-      "doorRect": [
-        625,
-        420,
-        145,
-        280
-      ],
-      "actorReferencePosition": [
-        -0.7,
-        0,
-        0.9
-      ],
+      "doorRect": [625, 420, 145, 280],
+      "actorReferencePosition": [-0.7, 0, 0.9],
       "targetActorFractionOfDoor": 0.46
     },
     "lighting": {
@@ -91,25 +63,13 @@
       "ambientIntensity": 0.42,
       "practicalColor": "#ffd69a",
       "practicalIntensity": 1.35,
-      "practicalPosition": [
-        -3.1,
-        2,
-        -0.4
-      ],
+      "practicalPosition": [-3.1, 2, -0.4],
       "windowColor": "#74889a",
       "windowIntensity": 0.5,
-      "windowPosition": [
-        -0.45,
-        2.8,
-        -2.7
-      ],
+      "windowPosition": [-0.45, 2.8, -2.7],
       "rimColor": "#8ea0b0",
       "rimIntensity": 0.22,
-      "rimPosition": [
-        2.8,
-        2,
-        -2.1
-      ]
+      "rimPosition": [2.8, 2, -2.1]
     },
     "actorDepthScale": {
       "topY": 610,
@@ -127,12 +87,12 @@
   "spawns": {
     "from_street": {
       "x": 1160,
-      "y": 830,
+      "y": 690,
       "facing": "left"
     },
     "from_garage": {
       "x": 1160,
-      "y": 830,
+      "y": 690,
       "facing": "left"
     }
   },
@@ -142,109 +102,109 @@
       "id": "escape_car",
       "path": "Models/car.fbx",
       "textureFolder": "car",
-      "position": [
-        -3.75,
-        -2.35,
-        0.55
-      ],
+      "position": [-3.15, -2.35, -2.55],
       "rotationY": 3.1416,
-      "visualRotation": [
-        0,
-        0,
-        0
-      ],
-      "heightScale": 0.36,
-      "collisionRadius": 0.42,
-      "collisionOffset": [
-        0.1,
-        0,
-        0.05
-      ]
+      "visualRotation": [0, 0, 0],
+      "heightScale": 0.3,
+      "collisionRadius": 0.34,
+      "collisionOffset": [0.1, 0, 0.05]
     }
   ],
   "exits": [
     {
       "id": "back_to_street",
       "label": "Back",
-      "rect": [
-        0,
-        705,
-        190,
-        236
-      ],
+      "rect": [0, 705, 190, 236],
       "targetRoom": "street",
       "targetSpawn": "from_downtown",
-      "text": "Romeo heads back toward the garage street."
+      "text": "I head back toward the garage street. Bad idea, but at least it is a known bad idea."
+    },
+    {
+      "id": "lit_side_door",
+      "label": "Lit Side Door",
+      "rect": [575, 430, 220, 295],
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "The door opens inward with that tired apartment-building sigh. I step inside before the street changes its mind."
     }
   ],
   "hotspots": [
     {
       "id": "downtown_street",
-      "label": "Downtown",
-      "rect": [
-        780,
-        420,
-        355,
-        275
-      ],
-      "targetRoom": "path_down_the_street",
+      "label": "Further Downtown",
+      "rect": [780, 420, 355, 275],
+      "targetRoom": "downtown_swarm",
       "targetSpawn": "from_parked_car",
-      "text": "The street bends toward downtown. More windows. Less mercy."
+      "text": "The block bends forward. More windows. Less mercy."
+    },
+    {
+      "id": "lit_side_door_hotspot",
+      "label": "Lit Side Door",
+      "rect": [575, 430, 220, 295],
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "I try the lit side door. It gives, which is almost more suspicious than if it stayed shut."
     }
   ],
   "onEnter": [
     {
       "once": "street_to_downtown.first_enter",
-      "text": "The next block is quieter than the last. That does not make it kinder."
+      "text": "The next block is quieter than the last. Quiet is not peace. Quiet is the street holding its breath."
     }
   ],
   "interests": {
     "#ff00ff": {
-      "id": "shutter",
-      "label": "Shutter",
-      "text": "A metal shutter has been pulled down and left to rust in the rain."
+      "id": "dead_shutter",
+      "label": "Dead Shutter",
+      "text": "The shutter is pulled down like an eyelid. Whatever is behind it can keep its secrets."
     },
     "#ff0000": {
-      "id": "left_door",
-      "label": "Door",
-      "text": "A narrow door under the streetlamp. It looks locked by habit, not hope."
+      "id": "left_service_door",
+      "label": "Service Door",
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "A narrow service door under the lamp. I try it because standing outside feels like volunteering."
     },
     "#0000ff": {
-      "id": "side_alley",
-      "label": "Alley",
-      "text": "A thin alley slips between buildings. Cold air comes through it like a warning."
+      "id": "knife_alley",
+      "label": "Knife Alley",
+      "text": "The alley is too thin and too dark. Cold air slips out like it knows my name."
     },
     "#00ff00": {
-      "id": "middle_door",
-      "label": "Door",
-      "text": "The middle door has a warm bulb over it and no welcome underneath."
+      "id": "lit_side_door",
+      "label": "Lit Side Door",
+      "targetRoom": "old_kitchen",
+      "targetSpawn": "from_hallway",
+      "text": "The bulb over this door still burns. I do not trust it, but I trust the street less."
     },
     "#ffff00": {
-      "id": "downtown_street",
-      "label": "Downtown",
-      "text": "Past the building fronts, downtown waits in stacked dark windows."
-    },
-    "#955746": {
-      "id": "storefront_gate",
-      "label": "Gate",
-      "text": "A collapsed storefront gate hides glass and old shadows."
-    },
-    "#00ffff": {
-      "id": "path_down_the_street",
-      "label": "Street Path",
+      "id": "forward_block",
+      "label": "Forward Block",
       "targetRoom": "downtown_swarm",
       "targetSpawn": "from_parked_car",
-      "text": "This leads further down the street."
+      "text": "Past the building fronts, downtown waits in stacked dark windows. The car is parked as high on the block as I can risk."
+    },
+    "#955746": {
+      "id": "broken_storefront_gate",
+      "label": "Broken Gate",
+      "text": "The storefront gate has folded in on itself. Capital really does leave beautiful ruins when it panics."
+    },
+    "#00ffff": {
+      "id": "cross_street_path",
+      "label": "Cross Street",
+      "targetRoom": "downtown_swarm",
+      "targetSpawn": "from_parked_car",
+      "text": "This path cuts deeper into the block. The rain has made a mirror out of every trap."
     },
     "#808080": {
-      "id": "distant_windows",
-      "label": "Windows",
-      "text": "Far windows burn weakly in the alley. Romeo cannot tell if that is better or worse."
+      "id": "upper_windows",
+      "label": "Upper Windows",
+      "text": "Far windows burn weakly above me. Light without people is worse than darkness."
     },
     "#ff8800": {
-      "id": "street",
-      "label": "Street",
-      "text": "Rain sits in the road in black, shallow mirrors."
+      "id": "rain_blacktop",
+      "label": "Wet Road",
+      "text": "Rain sits in the road in black, shallow mirrors. Every reflection looks like movement."
     }
   },
   "npcAnimations": {
