@@ -187,7 +187,7 @@
         355,
         275
       ],
-      "targetRoom": "downtown_swarm",
+      "targetRoom": "path_down_the_street",
       "targetSpawn": "from_parked_car",
       "text": "The street bends toward downtown. More windows. Less mercy."
     }
@@ -222,8 +222,6 @@
     "#ffff00": {
       "id": "downtown_street",
       "label": "Downtown",
-      "targetRoom": "downtown_swarm",
-      "targetSpawn": "from_parked_car",
       "text": "Past the building fronts, downtown waits in stacked dark windows."
     },
     "#955746": {
@@ -232,9 +230,11 @@
       "text": "A collapsed storefront gate hides glass and old shadows."
     },
     "#00ffff": {
-      "id": "right_door",
-      "label": "Door",
-      "text": "A side door under a tired lamp. The handle is cold and still."
+      "id": "path_down_the_street",
+      "label": "Street Path",
+      "targetRoom": "downtown_swarm",
+      "targetSpawn": "from_parked_car",
+      "text": "This leads further down the street."
     },
     "#808080": {
       "id": "distant_windows",

@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941">
-  <rect width="1672" height="941" fill="transparent"/>
-  <rect x="0" y="430" width="188" height="245" fill="#ff00ff"/>
-  <rect x="210" y="485" width="130" height="210" fill="#ff0000"/>
-  <rect x="385" y="265" width="155" height="430" fill="#0000ff"/>
-  <rect x="625" y="420" width="145" height="280" fill="#00ff00"/>
-  <rect x="780" y="420" width="355" height="275" fill="#ffff00"/>
-  <rect x="1175" y="435" width="310" height="235" fill="#955746"/>
-  <rect x="1485" y="450" width="105" height="240" fill="#00ffff"/>
-  <rect x="455" y="120" width="125" height="455" fill="#808080"/>
-  <rect x="0" y="705" width="1672" height="236" fill="#ff8800"/>
-</svg>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 941" width="1672" height="941"><style>.a{fill:#f0f}.b{fill:#f00}.c{fill:#00f}.d{fill:#0f0}.e{fill:#ff0}.f{fill:#955746}.g{fill:#0ff}.h{fill:#808080}</style><path fill-rule="evenodd" d="m0 0h1672v941h-1672z"/><path fill-rule="evenodd" class="a" d="m0 430h188v245h-188z"/><path fill-rule="evenodd" class="b" d="m210 485h130v210h-130z"/><path fill-rule="evenodd" class="c" d="m385 265h155v430h-155z"/><path fill-rule="evenodd" class="d" d="m625 420h145v280h-145z"/><path fill-rule="evenodd" class="e" d="m780 420h355v275h-355z"/><path fill-rule="evenodd" class="f" d="m1175 435h310v235h-310z"/><path fill-rule="evenodd" class="g" d="m1567 462h105v240h-105z"/><path fill-rule="evenodd" class="h" d="m455 120h125v455h-125z"/></svg>
