@@ -109,6 +109,16 @@
       "text": "The door drags across the concrete. Somewhere above, something answers."
     }
   ],
+  "hotspots": [
+    {
+      "id": "gasoline_can_pickup",
+      "label": "Gasoline Can",
+      "rect": [1050, 455, 330, 255],
+      "action": "pickupGasolineCan",
+      "interactionReach": 260,
+      "approachRadius": 430
+    }
+  ],
   "onEnter": [
     {
       "once": "basement_storage.first_enter",
@@ -175,7 +185,7 @@
     "#ff0000": {
       "id": "right_storage",
       "label": "Crates",
-      "text": "Stacked crates crowd the right wall. The shadows between them are doing too much work."
+      "action": "pickupGasolineCan"
     },
     "#000000": {
       "id": "garage_door",
