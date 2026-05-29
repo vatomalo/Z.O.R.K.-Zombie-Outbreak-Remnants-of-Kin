@@ -86,6 +86,10 @@
       return true;
     }
     if (action && typeof action === 'object') {
+      if (action.action) {
+        engine.process(action.action, { ...interest, ...action });
+        return true;
+      }
       engine.runAction(action, interest);
       return true;
     }
