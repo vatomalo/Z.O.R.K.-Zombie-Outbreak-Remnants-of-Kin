@@ -96,18 +96,14 @@
       "id": "swarm_left",
       "label": "Zombie",
       "type": "zombie",
-      "active": true,
+      "active": false,
       "path": "Models/Zombie01.fbx",
       "textureFolder": "Zombie01",
       "position": [-2.85, 0, 0.35],
       "rotationY": 1.25,
       "heightScale": 0.88,
       "collisionRadius": 0.34,
-      "movement": {
-        "walkSpeed": 0.18,
-        "waitSeconds": 1.1,
-        "path": [[-2.85, 0, 0.35], [-1.7, 0, 0.6]]
-      },
+      "movement": { "walkSpeed": 0.18, "waitSeconds": 1.1, "path": [[-2.85, 0, 0.35], [-1.7, 0, 0.6]] },
       "attackRadius": 1,
       "damage": 8,
       "damageCooldownMs": 1400,
@@ -119,18 +115,14 @@
       "id": "swarm_center_far",
       "label": "Zombie",
       "type": "zombie",
-      "active": true,
+      "active": false,
       "path": "Models/Zombie02.fbx",
       "textureFolder": "Zombie02",
       "position": [-0.4, 0, -2.2],
       "rotationY": 0.2,
       "heightScale": 0.66,
       "collisionRadius": 0.32,
-      "movement": {
-        "walkSpeed": 0.17,
-        "waitSeconds": 1.6,
-        "path": [[-0.4, 0, -2.2], [-0.15, 0, -1.05]]
-      },
+      "movement": { "walkSpeed": 0.17, "waitSeconds": 1.6, "path": [[-0.4, 0, -2.2], [-0.15, 0, -1.05]] },
       "attackRadius": 0.95,
       "damage": 8,
       "damageCooldownMs": 1400,
@@ -142,18 +134,14 @@
       "id": "swarm_right_near",
       "label": "Zombie",
       "type": "zombie",
-      "active": true,
+      "active": false,
       "path": "Models/Zombie01.fbx",
       "textureFolder": "Zombie01",
       "position": [2.75, 0, 0.75],
       "rotationY": -1.6,
       "heightScale": 0.92,
       "collisionRadius": 0.34,
-      "movement": {
-        "walkSpeed": 0.2,
-        "waitSeconds": 1.2,
-        "path": [[2.75, 0, 0.75], [1.65, 0, 0.58]]
-      },
+      "movement": { "walkSpeed": 0.2, "waitSeconds": 1.2, "path": [[2.75, 0, 0.75], [1.65, 0, 0.58]] },
       "attackRadius": 1,
       "damage": 8,
       "damageCooldownMs": 1400,
@@ -165,18 +153,14 @@
       "id": "swarm_back_left",
       "label": "Zombie",
       "type": "zombie",
-      "active": true,
+      "active": false,
       "path": "Models/Zombie02.fbx",
       "textureFolder": "Zombie02",
       "position": [-1.8, 0, -1.55],
       "rotationY": 0.75,
       "heightScale": 0.7,
       "collisionRadius": 0.32,
-      "movement": {
-        "walkSpeed": 0.15,
-        "waitSeconds": 1.8,
-        "path": [[-1.8, 0, -1.55], [-1.1, 0, -0.55]]
-      },
+      "movement": { "walkSpeed": 0.15, "waitSeconds": 1.8, "path": [[-1.8, 0, -1.55], [-1.1, 0, -0.55]] },
       "attackRadius": 0.95,
       "damage": 8,
       "damageCooldownMs": 1400,
@@ -188,18 +172,14 @@
       "id": "swarm_back_right",
       "label": "Zombie",
       "type": "zombie",
-      "active": true,
+      "active": false,
       "path": "Models/Zombie01.fbx",
       "textureFolder": "Zombie01",
       "position": [1.85, 0, -1.75],
       "rotationY": -0.65,
       "heightScale": 0.68,
       "collisionRadius": 0.32,
-      "movement": {
-        "walkSpeed": 0.16,
-        "waitSeconds": 1.4,
-        "path": [[1.85, 0, -1.75], [1.1, 0, -0.65]]
-      },
+      "movement": { "walkSpeed": 0.16, "waitSeconds": 1.4, "path": [[1.85, 0, -1.75], [1.1, 0, -0.65]] },
       "attackRadius": 0.95,
       "damage": 8,
       "damageCooldownMs": 1400,
@@ -208,19 +188,7 @@
       "maxHealth": 4
     }
   ],
-  "props": [
-    {
-      "id": "escape_car",
-      "path": "Models/car.fbx",
-      "textureFolder": "car",
-      "position": [-3.15, -2.35, -2.55],
-      "rotationY": 3.1416,
-      "visualRotation": [0, 0, 0],
-      "heightScale": 0.3,
-      "collisionRadius": 0.34,
-      "collisionOffset": [0.1, 0, 0.05]
-    }
-  ],
+  "props": [],
   "exits": [
     {
       "id": "back_to_parked_car",
@@ -259,54 +227,18 @@
     {
       "once": "downtown_swarm.first_enter",
       "setThreat": "danger",
-      "text": "The block answers all at once. Doors, alleys, windows. Too many feet in the rain."
+      "text": "The block is empty for half a second. Then the street starts adding bodies."
     }
   ],
   "interests": {
-    "#ffff00": {
-      "id": "crowd_pressure",
-      "label": "Crowd Pressure",
-      "text": "The dead are not running. They do not need to. Time is doing the work for them."
-    },
-    "#ff8800": {
-      "id": "rain_wake",
-      "label": "Rain Wake",
-      "text": "Rain breaks around my shoes. Behind me, the crowd keeps stitching itself together."
-    },
-    "#ff0000": {
-      "id": "emergency_shop_door",
-      "label": "Emergency Door",
-      "targetRoom": "old_kitchen",
-      "targetSpawn": "from_hallway",
-      "text": "The emergency door is ugly, metal, and possibly useful. That is enough for me."
-    },
-    "#00ff00": {
-      "id": "lit_escape_door",
-      "label": "Lit Escape Door",
-      "targetRoom": "old_kitchen",
-      "targetSpawn": "from_hallway",
-      "text": "The lamp above this door flickers like it is trying to warn me in Morse code. I never learned Morse."
-    },
-    "#0000ff": {
-      "id": "mouth_alley",
-      "label": "Mouth Alley",
-      "text": "The alley opens like a mouth. No, thank you. I already have enough teeth in my night."
-    },
-    "#00ffff": {
-      "id": "parked_car_upper",
-      "label": "Parked Car",
-      "text": "The car is parked high on the block, as far from the lower crowd as I could force it."
-    },
-    "#808080": {
-      "id": "blind_windows",
-      "label": "Blind Windows",
-      "text": "The windows stare without helping. Typical architecture."
-    },
-    "#955746": {
-      "id": "folded_gate",
-      "label": "Folded Gate",
-      "text": "A folded gate rattles in the rain. It sounds like coins in a dead pocket."
-    }
+    "#ffff00": { "id": "crowd_pressure", "label": "Crowd Pressure", "text": "The dead are not running. They do not need to. Time is doing the work for them." },
+    "#ff8800": { "id": "rain_wake", "label": "Rain Wake", "text": "Rain breaks around my shoes. Behind me, the crowd keeps stitching itself together." },
+    "#ff0000": { "id": "emergency_shop_door", "label": "Emergency Door", "targetRoom": "old_kitchen", "targetSpawn": "from_hallway", "text": "The emergency door is ugly, metal, and possibly useful. That is enough for me." },
+    "#00ff00": { "id": "lit_escape_door", "label": "Lit Escape Door", "targetRoom": "old_kitchen", "targetSpawn": "from_hallway", "text": "The lamp above this door flickers like it is trying to warn me in Morse code. I never learned Morse." },
+    "#0000ff": { "id": "mouth_alley", "label": "Mouth Alley", "text": "The alley opens like a mouth. No, thank you. I already have enough teeth in my night." },
+    "#00ffff": { "id": "empty_curb", "label": "Empty Curb", "text": "No car here. I walked away from it. That fact suddenly feels very loud." },
+    "#808080": { "id": "blind_windows", "label": "Blind Windows", "text": "The windows stare without helping. Typical architecture." },
+    "#955746": { "id": "folded_gate", "label": "Folded Gate", "text": "A folded gate rattles in the rain. It sounds like coins in a dead pocket." }
   },
   "npcAnimations": {
     "idle": "Animation/idle.fbx",
