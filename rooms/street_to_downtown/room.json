@@ -102,11 +102,11 @@
       "id": "escape_car",
       "path": "Models/car.fbx",
       "textureFolder": "car",
-      "position": [-3.15, -2.35, -2.55],
+      "position": [-2.75, -2.35, -2.15],
       "rotationY": 3.1416,
       "visualRotation": [0, 0, 0],
-      "heightScale": 0.3,
-      "collisionRadius": 0.34,
+      "heightScale": 0.52,
+      "collisionRadius": 0.46,
       "collisionOffset": [0.1, 0, 0.05]
     }
   ],
@@ -133,8 +133,7 @@
       "id": "downtown_street",
       "label": "Further Downtown",
       "rect": [780, 420, 355, 275],
-      "targetRoom": "downtown_swarm",
-      "targetSpawn": "from_parked_car",
+      "action": "walkToDowntownSwarm",
       "text": "The block bends forward. More windows. Less mercy."
     },
     {
@@ -180,9 +179,8 @@
     "#ffff00": {
       "id": "forward_block",
       "label": "Forward Block",
-      "targetRoom": "downtown_swarm",
-      "targetSpawn": "from_parked_car",
-      "text": "Past the building fronts, downtown waits in stacked dark windows. The car is parked as high on the block as I can risk."
+      "action": "walkToDowntownSwarm",
+      "text": "Past the building fronts, downtown waits in stacked dark windows. The car is behind me now. That is the problem with escape: you still have to walk away from things."
     },
     "#955746": {
       "id": "broken_storefront_gate",
@@ -192,8 +190,7 @@
     "#00ffff": {
       "id": "cross_street_path",
       "label": "Cross Street",
-      "targetRoom": "downtown_swarm",
-      "targetSpawn": "from_parked_car",
+      "action": "walkToDowntownSwarm",
       "text": "This path cuts deeper into the block. The rain has made a mirror out of every trap."
     },
     "#808080": {
