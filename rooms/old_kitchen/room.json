@@ -8,175 +8,36 @@
     "walkMask": "rooms/old_kitchen/walkmask.svg",
     "walkMaskMode": "painted-walkable"
   },
-  "camera": {
-    "type": "fixed",
-    "width": 1672,
-    "height": 941
-  },
+  "camera": { "type": "fixed", "width": 1672, "height": 941 },
   "hybrid3d": {
     "enabled": true,
     "walkSurfaceY": -3.6,
-    "walkPlaneFromRoomPixels": {
-      "top": [836, 610, -3.0],
-      "bottom": [836, 895, 3.2]
-    },
-    "layers": {
-      "background": "rooms/old_kitchen/bg.svg",
-      "foreground": "rooms/old_kitchen/fg.svg"
-    },
-    "composition": {
-      "baseLayerSize": [18.4, 10.35],
-      "roomZoom": 1,
-      "doorWorldHeight": 3.6,
-      "actorDoorRatio": 0.33,
-      "npcScale": 1,
-      "propScale": 0.78,
-      "backgroundExposure": 1.12,
-      "backgroundTint": "#b4ad69",
-      "backgroundTintStrength": 0.28,
-      "foregroundOpacity": 0.3
-    },
-    "threeCamera": {
-      "projection": "orthographic",
-      "orthoHeight": 10.35,
-      "position": [0, 1.75, 5.2],
-      "target": [0, 1.15, -1.25]
-    },
-    "walkBounds": {
-      "minX": -3.7,
-      "maxX": 3.7,
-      "minZ": -2.35,
-      "maxZ": 1.6
-    },
-    "screenScaleReference": {
-      "doorRect": [1510, 260, 115, 470],
-      "actorReferencePosition": [0, 0, -1.5],
-      "targetActorFractionOfDoor": 0.48
-    },
-    "lighting": {
-      "profile": "sickly_kitchen",
-      "fogColor": "#080a05",
-      "fogNear": 2,
-      "fogFar": 9,
-      "clearColor": "#050604",
-      "ambientColor": "#3f4232",
-      "ambientIntensity": 0.48,
-      "practicalColor": "#d6c77a",
-      "practicalIntensity": 1.15,
-      "practicalPosition": [-0.7, 1.9, -0.4],
-      "windowColor": "#6f806f",
-      "windowIntensity": 0.35,
-      "windowPosition": [-2.4, 2.4, -2.8],
-      "rimColor": "#9b9870",
-      "rimIntensity": 0.28,
-      "rimPosition": [2.5, 2.0, -2.2]
-    }
+    "walkPlaneFromRoomPixels": { "top": [836, 610, -3.0], "bottom": [836, 895, 3.2] },
+    "layers": { "background": "rooms/old_kitchen/bg.svg", "foreground": "rooms/old_kitchen/fg.svg" },
+    "composition": { "baseLayerSize": [18.4, 10.35], "roomZoom": 1, "doorWorldHeight": 3.6, "actorDoorRatio": 0.33, "npcScale": 1, "propScale": 0.78, "backgroundExposure": 1.12, "backgroundTint": "#b4ad69", "backgroundTintStrength": 0.28, "foregroundOpacity": 0.3 },
+    "threeCamera": { "projection": "orthographic", "orthoHeight": 10.35, "position": [0, 1.75, 5.2], "target": [0, 1.15, -1.25] },
+    "walkBounds": { "minX": -3.7, "maxX": 3.7, "minZ": -2.35, "maxZ": 1.6 },
+    "screenScaleReference": { "doorRect": [1510, 260, 115, 470], "actorReferencePosition": [0, 0, -1.5], "targetActorFractionOfDoor": 0.48 },
+    "lighting": { "profile": "sickly_kitchen", "fogColor": "#080a05", "fogNear": 2, "fogFar": 9, "clearColor": "#050604", "ambientColor": "#3f4232", "ambientIntensity": 0.48, "practicalColor": "#d6c77a", "practicalIntensity": 1.15, "practicalPosition": [-0.7, 1.9, -0.4], "windowColor": "#6f806f", "windowIntensity": 0.35, "windowPosition": [-2.4, 2.4, -2.8], "rimColor": "#9b9870", "rimIntensity": 0.28, "rimPosition": [2.5, 2.0, -2.2] }
   },
-  "playerStart": {
-    "x": 836,
-    "y": 760,
-    "facing": "up"
-  },
-  "spawns": {
-    "from_hallway": {
-      "x": 1510,
-      "y": 720,
-      "facing": "left"
-    },
-    "from_basement": {
-      "x": 860,
-      "y": 800,
-      "facing": "up"
-    }
-  },
+  "playerStart": { "x": 836, "y": 760, "facing": "up" },
+  "spawns": { "from_hallway": { "x": 1510, "y": 720, "facing": "left" }, "from_basement": { "x": 860, "y": 800, "facing": "up" } },
   "actors": [],
   "exits": [
-    {
-      "id": "kitchen_door",
-      "label": "Kitchen Door",
-      "rect": [1510, 260, 115, 470],
-      "targetRoom": "hallway_7f",
-      "targetSpawn": "from_kitchen",
-      "text": "The kitchen door leads back toward the hallway."
-    },
-    {
-      "id": "basement_hatch",
-      "label": "Basement Hatch",
-      "rect": [720, 690, 300, 190],
-      "requiresItem": "small_key",
-      "setFlag": "basement_hatch_unlocked",
-      "targetRoom": "basement_storage",
-      "targetSpawn": "from_kitchen",
-      "lockedText": "The hatch lock barely moves. Romeo needs a small key.",
-      "text": "The small key turns with a dry click. The hatch exhales basement air.",
-      "afterText": "Romeo lowers himself beneath the kitchen."
-    }
+    { "id": "kitchen_door", "label": "Kitchen Door", "rect": [1510, 260, 115, 470], "targetRoom": "hallway_7f", "targetSpawn": "from_kitchen", "text": "The kitchen door leads back toward the hallway.", "verbs": { "look": "The kitchen door leads back toward the hallway. The hallway feels colder even from here.", "pickup": "No. Door stays door.", "use": { "targetRoom": "hallway_7f", "targetSpawn": "from_kitchen", "text": "I step back toward the hallway." } } },
+    { "id": "basement_hatch", "label": "Basement Hatch", "rect": [720, 690, 300, 190], "requiresItem": "small_key", "setFlag": "basement_hatch_unlocked", "targetRoom": "basement_storage", "targetSpawn": "from_kitchen", "lockedText": "The hatch lock barely moves. I need a small key.", "text": "The small key turns with a dry click. The hatch exhales basement air.", "afterText": "I lower myself beneath the kitchen.", "verbs": { "look": "A basement hatch in the kitchen floor. Locked, because of course the building still believes in little humiliations.", "pickup": "I am not picking up a hatch. I need to open it.", "use": { "requiresItem": "small_key", "setFlag": "basement_hatch_unlocked", "targetRoom": "basement_storage", "targetSpawn": "from_kitchen", "lockedText": "The hatch lock barely moves. I need a small key.", "text": "The small key turns with a dry click. The hatch exhales basement air.", "afterText": "I lower myself beneath the kitchen." } } }
   ],
   "interests": {
-    "#0000ff": {
-      "id": "window",
-      "label": "Window",
-      "text": "Blue winter light presses against the kitchen window. The glass has gone cloudy around the edges."
-    },
-    "#00ffff": {
-      "id": "fridge",
-      "label": "Fridge",
-      "text": "The old refrigerator is yellowed, scarred, and somehow still proud of itself."
-    },
-    "#ff8800": {
-      "id": "left_shelf",
-      "label": "Shelf",
-      "text": "Jars and bottles sit above the fridge. The dust on them looks permanent."
-    },
-    "#00ff00": {
-      "id": "table",
-      "label": "Table",
-      "text": "A small table with cups and bottles. Somebody sat here long after the meal was over."
-    },
-    "#ffff00": {
-      "id": "middle_shelf",
-      "label": "Shelf",
-      "text": "A shelf of jars, a towel, and old kitchen smells that refuse to leave."
-    },
-    "#808080": {
-      "id": "portrait",
-      "label": "Portrait",
-      "text": "A little portrait watches the kitchen from the wall. Its frame is cracked where someone must have hit the wall beside it."
-    },
-    "#ff00ff": {
-      "id": "stove",
-      "label": "Stove",
-      "text": "The stove is cold. A pot waits on top like it forgot the end of the world."
-    },
-    "#955746": {
-      "id": "upper_cabinets",
-      "label": "Cabinets",
-      "text": "Upper cabinets loom over the counter, their doors swollen from years of steam."
-    },
-    "#ff0000": {
-      "id": "lower_cabinets",
-      "label": "Counter",
-      "action": "pickupCrowbar"
-    },
-    "#000000": {
-      "id": "kitchen_door",
-      "label": "Kitchen Door",
-      "cursor": "exit",
-      "targetRoom": "hallway_7f",
-      "targetSpawn": "from_kitchen",
-      "text": "The kitchen door leads back toward the hallway."
-    },
-    "#381246": {
-      "id": "basement_hatch",
-      "label": "Basement Hatch",
-      "cursor": "exit",
-      "requiresItem": "small_key",
-      "setFlag": "basement_hatch_unlocked",
-      "targetRoom": "basement_storage",
-      "targetSpawn": "from_kitchen",
-      "lockedText": "The hatch lock barely moves. Romeo needs a small key.",
-      "text": "The small key turns with a dry click. The hatch exhales basement air.",
-      "afterText": "Romeo lowers himself beneath the kitchen."
-    }
+    "#0000ff": { "id": "window", "label": "Window", "text": "Blue winter light presses against the kitchen window. The glass has gone cloudy around the edges.", "verbs": { "look": "Blue winter light presses against the kitchen window. The glass has gone cloudy around the edges.", "pickup": "I leave the window where it is. It already has enough problems.", "use": "The window will not open. Outside is not accepting visitors anyway." } },
+    "#00ffff": { "id": "fridge", "label": "Fridge", "text": "The old refrigerator is yellowed, scarred, and somehow still proud of itself.", "verbs": { "look": "The old refrigerator is yellowed, scarred, and somehow still proud of itself.", "pickup": "A whole fridge? My spine files a complaint.", "use": "I open it just enough to remember why people invented doors." } },
+    "#ff8800": { "id": "left_shelf", "label": "Shelf", "text": "Jars and bottles sit above the fridge. The dust on them looks permanent.", "verbs": { "look": "Jars and bottles sit above the fridge. The dust on them looks permanent.", "pickup": "Nothing worth pocketing. Just expired little museum pieces.", "use": "I move a jar. The dust moves back." } },
+    "#00ff00": { "id": "table", "label": "Table", "text": "A small table with cups and bottles. Somebody sat here long after the meal was over.", "verbs": { "look": "A small table with cups and bottles. Somebody sat here long after the meal was over.", "pickup": "I do not need tableware. I need a way out.", "use": "I steady myself on the table. It creaks like it is also tired." } },
+    "#ffff00": { "id": "middle_shelf", "label": "Shelf", "text": "A shelf of jars, a towel, and old kitchen smells that refuse to leave.", "verbs": { "look": "A shelf of jars, a towel, and old kitchen smells that refuse to leave.", "pickup": "Nothing here earns pocket space.", "use": "I check behind the jars. Only dust and old defeat." } },
+    "#808080": { "id": "portrait", "label": "Portrait", "text": "A little portrait watches the kitchen from the wall. Its frame is cracked where someone must have hit the wall beside it.", "verbs": { "look": "A little portrait watches the kitchen from the wall. Its frame is cracked where someone must have hit the wall beside it.", "pickup": "I leave the portrait. Some ghosts get to keep their frame.", "use": "I straighten it. It immediately looks wrong again." } },
+    "#ff00ff": { "id": "stove", "label": "Stove", "text": "The stove is cold. A pot waits on top like it forgot the end of the world.", "verbs": { "look": "The stove is cold. A pot waits on top like it forgot the end of the world.", "pickup": "I am not carrying a stove. Even apocalypse has comedy limits.", "use": "No gas. No heat. Just another machine pretending." } },
+    "#955746": { "id": "upper_cabinets", "label": "Cabinets", "text": "Upper cabinets loom over the counter, their doors swollen from years of steam.", "verbs": { "look": "Upper cabinets loom over the counter, their doors swollen from years of steam.", "pickup": "The cabinets stay attached. Unlike most things around here.", "use": "I check them. Nothing but dead cups and bad angles." } },
+    "#ff0000": { "id": "lower_cabinets", "label": "Counter", "action": "pickupCrowbar", "verbs": { "look": "The lower cabinets hang crooked. Something heavy is wedged under the counter, almost hidden.", "pickup": { "action": "pickupCrowbar" }, "use": "I pull at the cabinet door. It gives me the crowbar instead of dignity." } },
+    "#000000": { "id": "kitchen_door", "label": "Kitchen Door", "cursor": "exit", "targetRoom": "hallway_7f", "targetSpawn": "from_kitchen", "text": "The kitchen door leads back toward the hallway.", "verbs": { "look": "The kitchen door leads back toward the hallway. The hallway feels colder even from here.", "pickup": "No. Door stays door.", "use": { "targetRoom": "hallway_7f", "targetSpawn": "from_kitchen", "text": "I step back toward the hallway." } } },
+    "#381246": { "id": "basement_hatch", "label": "Basement Hatch", "cursor": "exit", "requiresItem": "small_key", "setFlag": "basement_hatch_unlocked", "targetRoom": "basement_storage", "targetSpawn": "from_kitchen", "lockedText": "The hatch lock barely moves. I need a small key.", "text": "The small key turns with a dry click. The hatch exhales basement air.", "afterText": "I lower myself beneath the kitchen.", "verbs": { "look": "A basement hatch in the kitchen floor. Locked, because of course the building still believes in little humiliations.", "pickup": "I am not picking up a hatch. I need to open it.", "use": { "requiresItem": "small_key", "setFlag": "basement_hatch_unlocked", "targetRoom": "basement_storage", "targetSpawn": "from_kitchen", "lockedText": "The hatch lock barely moves. I need a small key.", "text": "The small key turns with a dry click. The hatch exhales basement air.", "afterText": "I lower myself beneath the kitchen." } } }
   }
 }
