@@ -8,191 +8,39 @@
     "walkMaskMode": "painted-walkable",
     "interestMap": "rooms/apt_708_entry/interestmap.svg"
   },
-  "camera": {
-    "type": "fixed",
-    "width": 1920,
-    "height": 1080
-  },
+  "camera": { "type": "fixed", "width": 1920, "height": 1080 },
   "hybrid3d": {
     "enabled": true,
     "walkSurfaceY": -3.6,
-    "walkPlaneFromRoomPixels": {
-      "top": [960, 535, -3.2],
-      "bottom": [960, 1080, 3.4]
-    },
-    "layers": {
-      "background": "rooms/apt_708_entry/bg.svg",
-      "foreground": "rooms/apt_708_entry/fg.svg"
-    },
-    "composition": {
-      "baseLayerSize": [18.4, 10.35],
-      "roomZoom": 1,
-      "doorWorldHeight": 3.6,
-      "actorDoorRatio": 0.33,
-      "npcScale": 1,
-      "propScale": 0.58,
-      "backgroundExposure": 2.45,
-      "foregroundOpacity": 0.18
-    },
-    "threeCamera": {
-      "projection": "orthographic",
-      "orthoHeight": 10.35,
-      "fov": 55,
-      "position": [0, 1.75, 5.2],
-      "target": [0, 1.15, -1.25]
-    },
-    "screenScaleReference": {
-      "doorRect": [1440, 80, 300, 720],
-      "actorReferencePosition": [2.55, 0, -1.75],
-      "targetActorFractionOfDoor": 0.64
-    },
-    "lighting": {
-      "profile": "safe_apartment",
-      "fogColor": "#0b0d10",
-      "fogNear": 7,
-      "fogFar": 20,
-      "clearColor": "#060607",
-      "ambientColor": "#70675c",
-      "ambientIntensity": 1.18,
-      "practicalColor": "#ffd2a0",
-      "practicalIntensity": 2.65,
-      "practicalPosition": [-2.5, 1.35, 0.75],
-      "windowColor": "#b8d8ff",
-      "windowIntensity": 1.12,
-      "windowPosition": [-0.35, 2.8, -3.2],
-      "rimColor": "#fff2d2",
-      "rimIntensity": 0.72,
-      "rimPosition": [2.9, 2.0, -2.4]
-    }
+    "walkPlaneFromRoomPixels": { "top": [960, 535, -3.2], "bottom": [960, 1080, 3.4] },
+    "layers": { "background": "rooms/apt_708_entry/bg.svg", "foreground": "rooms/apt_708_entry/fg.svg" },
+    "composition": { "baseLayerSize": [18.4, 10.35], "roomZoom": 1, "doorWorldHeight": 3.6, "actorDoorRatio": 0.33, "npcScale": 1, "propScale": 0.58, "backgroundExposure": 2.45, "foregroundOpacity": 0.18 },
+    "threeCamera": { "projection": "orthographic", "orthoHeight": 10.35, "fov": 55, "position": [0, 1.75, 5.2], "target": [0, 1.15, -1.25] },
+    "screenScaleReference": { "doorRect": [1440, 80, 300, 720], "actorReferencePosition": [2.55, 0, -1.75], "targetActorFractionOfDoor": 0.64 },
+    "lighting": { "profile": "safe_apartment", "fogColor": "#0b0d10", "fogNear": 7, "fogFar": 20, "clearColor": "#060607", "ambientColor": "#70675c", "ambientIntensity": 1.18, "practicalColor": "#ffd2a0", "practicalIntensity": 2.65, "practicalPosition": [-2.5, 1.35, 0.75], "windowColor": "#b8d8ff", "windowIntensity": 1.12, "windowPosition": [-0.35, 2.8, -3.2], "rimColor": "#fff2d2", "rimIntensity": 0.72, "rimPosition": [2.9, 2.0, -2.4] }
   },
-  "playerStart": {
-    "markerColor": "#000000",
-    "markerSearchRadius": 220,
-    "x": 1200,
-    "y": 760,
-    "facing": "down"
-  },
-  "spawns": {
-    "from_hallway": {
-      "x": 1470,
-      "y": 790,
-      "facing": "left"
-    }
-  },
+  "playerStart": { "markerColor": "#000000", "markerSearchRadius": 220, "x": 1200, "y": 760, "facing": "down" },
+  "spawns": { "from_hallway": { "x": 1470, "y": 790, "facing": "left" } },
   "actors": [],
   "exits": [
-    {
-      "id": "hallway_door",
-      "label": "Door",
-      "rect": [1410, 410, 230, 380],
-      "targetRoom": "hallway_7f",
-      "targetSpawn": "from_apartment",
-      "text": "Romeo opens the apartment door. The hall waits colder than it should."
-    }
+    { "id": "hallway_door", "label": "Door", "rect": [1410, 410, 230, 380], "targetRoom": "hallway_7f", "targetSpawn": "from_apartment", "text": "I open the apartment door. The hall waits colder than it should.", "verbs": { "look": "The apartment door looks ordinary, which feels rude considering everything else.", "pickup": "I am not taking the front door. The hallway can keep its teeth.", "use": { "targetRoom": "hallway_7f", "targetSpawn": "from_apartment", "text": "I open the apartment door. The hall waits colder than it should." } } }
   ],
-  "onEnter": [
-    {
-      "once": "apt_708_entry.first_enter",
-      "text": "Apartment 708 still knows Romeo's shape. For now, the room is bright enough to lie."
-    }
-  ],
+  "onEnter": [ { "once": "apt_708_entry.first_enter", "text": "Apartment 708 still knows my shape. For now, the room is bright enough to lie." } ],
   "interests": {
-    "#ff0000": {
-      "id": "front_door",
-      "label": "Door",
-      "cursor": "exit",
-      "targetRoom": "hallway_7f",
-      "targetSpawn": "from_apartment",
-      "voice": "doorheavy",
-      "text": "The door is heavy, but not locked. The hallway on the other side has been listening."
-    },
-    "#00ff00": {
-      "id": "desk",
-      "label": "Desk",
-      "voice": "desk",
-      "text": "Old bills, half-written lyrics, and a note in Romeo's own handwriting: If I forget, check the books."
-    },
-    "#ff8800": {
-      "id": "flag",
-      "label": "Flag",
-      "voice": "flag",
-      "text": "A Chilean flag, pinned up like proof somebody here still believed in places. Romeo looks at it longer than he means to."
-    },
-    "#0000ff": {
-      "id": "bed",
-      "label": "Bed",
-      "voice": "bed",
-      "text": "The sheets smell like cold sweat and cheap detergent. Somebody slept badly here."
-    },
-    "#ffff00": {
-      "id": "coffee_table",
-      "label": "Table",
-      "voice": "table",
-      "text": "A battlefield of mugs, paper, and things nobody wanted to throw away."
-    },
-    "#ff00ff": {
-      "id": "window",
-      "label": "Window",
-      "voice": "window",
-      "text": "Snow crawls down the glass. Outside has the decency to stay outside."
-    },
-    "#00ffff": {
-      "id": "tv",
-      "label": "Television",
-      "voice": "television",
-      "text": "Dead screen. Heavy glass. The kind of silence that used to mean late-night movies."
-    },
-    "#380f04": {
-      "id": "lamp",
-      "label": "Lamp",
-      "voice": "lamp",
-      "text": "The lamp keeps its small promise. Warmth, a little circle of it, and nothing more."
-    },
-    "#808080": {
-      "id": "punchingbag",
-      "label": "Punchingbag",
-      "voice": "punchy",
-      "text": "Judging by the dents, somebody was training for the end of the world."
-    },
-    "#ffffff": {
-      "id": "books",
-      "label": "Books",
-      "voice": "books",
-      "once": "apt_708_entry.books.small_key",
-      "giveItem": "small_key",
-      "setFlag": "found_small_key",
-      "text": "Between two swollen paperbacks, Romeo finds a small key taped to the inside cover.",
-      "repeatText": "Apparently the chosen one only needed friendship, courage, and a legendary blade."
-    },
-    "#955746": {
-      "id": "jacket",
-      "label": "Jacket",
-      "voice": "jacket",
-      "text": "It is Romeo's jacket, but after all of this, it feels like it belongs to someone he used to be."
-    },
-    "#042d0e": {
-      "id": "picture",
-      "label": "Picture",
-      "voice": "picture",
-      "text": "Romeo remembers hiding something before sleep became impossible."
-    },
-    "#26863d": {
-      "id": "vhs",
-      "label": "VHS",
-      "voice": "vhs",
-      "text": "The tape label reads: DO NOT LOSE THE SMALL ONE. Romeo hates when past Romeo is vague."
-    },
-    "#161d47": {
-      "id": "pictures",
-      "label": "Pictures",
-      "voice": "pictures",
-      "text": "Pictures from a cleaner life. Romeo studies them like evidence from a case he already lost."
-    },
-    "#2d3c9e": {
-      "id": "heater",
-      "label": "Heater",
-      "voice": "heater",
-      "text": "At least something in this place still remembers how to be warm."
-    }
+    "#ff0000": { "id": "front_door", "label": "Door", "cursor": "exit", "targetRoom": "hallway_7f", "targetSpawn": "from_apartment", "voice": "doorheavy", "text": "The door is heavy, but not locked. The hallway on the other side has been listening.", "verbs": { "look": "The door is heavy, but not locked. The hallway on the other side has been listening.", "pickup": "I am not taking the front door. The hallway can keep its teeth.", "use": { "targetRoom": "hallway_7f", "targetSpawn": "from_apartment", "text": "I open the apartment door. The hall waits colder than it should." } } },
+    "#00ff00": { "id": "desk", "label": "Desk", "voice": "desk", "text": "Old bills, half-written lyrics, and a note in my own handwriting: If I forget, check the books.", "verbs": { "look": "Old bills, half-written lyrics, and a note in my own handwriting: If I forget, check the books.", "pickup": "I am not taking the desk. The debt can stay attached to the furniture.", "use": "I search the desk again. The note keeps pointing at the books like past me got dramatic with breadcrumbs." } },
+    "#ff8800": { "id": "flag", "label": "Flag", "voice": "flag", "text": "A Chilean flag, pinned up like proof somebody here still believed in places. I look at it longer than I mean to.", "verbs": { "look": "A Chilean flag, pinned up like proof somebody here still believed in places. I look at it longer than I mean to.", "pickup": "I leave it pinned. Some things are not loot.", "use": "I touch the edge of the flag. Cloth, memory, exile. Too much for an inventory slot." } },
+    "#0000ff": { "id": "bed", "label": "Bed", "voice": "bed", "text": "The sheets smell like cold sweat and cheap detergent. Somebody slept badly here.", "verbs": { "look": "The sheets smell like cold sweat and cheap detergent. Somebody slept badly here.", "pickup": "I am not carrying bedding into the apocalypse. Even I have aesthetic limits.", "use": "No time to lie down. The room already knows I am tired." } },
+    "#ffff00": { "id": "coffee_table", "label": "Table", "voice": "table", "text": "A battlefield of mugs, paper, and things nobody wanted to throw away.", "verbs": { "look": "A battlefield of mugs, paper, and things nobody wanted to throw away.", "pickup": "Nothing here deserves pocket space.", "use": "I move a mug. Under it: another reason to clean later, if later exists." } },
+    "#ff00ff": { "id": "window", "label": "Window", "voice": "window", "text": "Snow crawls down the glass. Outside has the decency to stay outside.", "verbs": { "look": "Snow crawls down the glass. Outside has the decency to stay outside.", "pickup": "I am not taking the window. I am trying to leave through better ideas.", "use": "The window sticks. Outside refuses the shortcut." } },
+    "#00ffff": { "id": "tv", "label": "Television", "voice": "television", "text": "Dead screen. Heavy glass. The kind of silence that used to mean late-night movies.", "verbs": { "look": "Dead screen. Heavy glass. The kind of silence that used to mean late-night movies.", "pickup": "The TV is too heavy and too dead. Bad combination.", "use": "I press a button. The television remains loyal to silence." } },
+    "#380f04": { "id": "lamp", "label": "Lamp", "voice": "lamp", "text": "The lamp keeps its small promise. Warmth, a little circle of it, and nothing more.", "verbs": { "look": "The lamp keeps its small promise. Warmth, a little circle of it, and nothing more.", "pickup": "No. The lamp is doing important emotional labor here.", "use": "I leave it on. Darkness already owns enough." } },
+    "#808080": { "id": "punchingbag", "label": "Punchingbag", "voice": "punchy", "text": "Judging by the dents, somebody was training for the end of the world.", "verbs": { "look": "Judging by the dents, somebody was training for the end of the world.", "pickup": "I am not carrying a punching bag. I already have unresolved issues.", "use": "I give it one hit. It swings back like a bad memory." } },
+    "#ffffff": { "id": "books", "label": "Books", "voice": "books", "once": "apt_708_entry.books.small_key", "giveItem": "small_key", "setFlag": "found_small_key", "text": "Between two swollen paperbacks, I find a small key taped to the inside cover.", "repeatText": "Apparently the chosen one only needed friendship, courage, and a legendary blade.", "verbs": { "look": "Swollen paperbacks, cracked spines, one suspicious gap. Past me was many things, but subtle was not one of them.", "pickup": { "once": "apt_708_entry.books.small_key", "giveItem": "small_key", "setFlag": "found_small_key", "text": "Between two swollen paperbacks, I find a small key taped to the inside cover.", "repeatText": "Apparently the chosen one only needed friendship, courage, and a legendary blade." }, "use": "I check the books with my hands this time. The little key was waiting for me to stop just looking." } },
+    "#955746": { "id": "jacket", "label": "Jacket", "voice": "jacket", "text": "It is my jacket, but after all of this, it feels like it belongs to someone I used to be.", "verbs": { "look": "It is my jacket, but after all of this, it feels like it belongs to someone I used to be.", "pickup": "I leave the jacket. Too much old skin in it.", "use": "I check the pockets. Nothing but lint and a tiny betrayal." } },
+    "#042d0e": { "id": "picture", "label": "Picture", "voice": "picture", "text": "I remember hiding something before sleep became impossible.", "verbs": { "look": "I remember hiding something before sleep became impossible.", "pickup": "No. The picture stays. It is already carrying too much.", "use": "The memory points back toward the books." } },
+    "#26863d": { "id": "vhs", "label": "VHS", "voice": "vhs", "text": "The tape label reads: DO NOT LOSE THE SMALL ONE. I hate when past me is vague.", "verbs": { "look": "The tape label reads: DO NOT LOSE THE SMALL ONE. I hate when past me is vague.", "pickup": "No VCR, no time, no nostalgia tax.", "use": "The label keeps nagging me about the small one. Small key. Small chance. Same energy." } },
+    "#161d47": { "id": "pictures", "label": "Pictures", "voice": "pictures", "text": "Pictures from a cleaner life. I study them like evidence from a case I already lost.", "verbs": { "look": "Pictures from a cleaner life. I study them like evidence from a case I already lost.", "pickup": "I leave them. Proof is heavy.", "use": "I turn one picture over. Nothing hidden. Just the past being theatrical." } },
+    "#2d3c9e": { "id": "heater", "label": "Heater", "voice": "heater", "text": "At least something in this place still remembers how to be warm.", "verbs": { "look": "At least something in this place still remembers how to be warm.", "pickup": "Stealing the heater would be funny for three seconds and fatal for my back.", "use": "I touch it. Warm enough to be suspicious." } }
   }
 }
